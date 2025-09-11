@@ -30,7 +30,13 @@ async function registerUser(req, res) {
         role: "user"
     }, process.env.JWT_SECRET)
 
-    res.cookie("token", token)
+    res.cookie('token', token, {
+  httpOnly: true,
+  secure: true,         // true on HTTPS (production)
+  sameSite: 'None',     // must be 'None' if frontend and backend are on different domains
+  maxAge: 24 * 60 * 60 * 1000 // 1 day
+});
+
 
     res.status(201).json({
         message: "User registered successfully",
@@ -70,7 +76,13 @@ async function loginUser(req, res) {
         role: "user"
     }, process.env.JWT_SECRET)
 
-    res.cookie("token", token)
+    res.cookie('token', token, {
+        httpOnly: true,
+        secure: true,         // true on HTTPS (production)
+        sameSite: 'None',     // must be 'None' if frontend and backend are on different domains
+        maxAge: 24 * 60 * 60 * 1000 // 1 day
+    });
+
 
     res.status(200).json({
         message: "User logged in successfully",
@@ -120,7 +132,13 @@ async function registerFoodPartner(req, res) {
         role: "foodPartner"
     }, process.env.JWT_SECRET)
 
-    res.cookie("token", token)
+    res.cookie('token', token, {
+  httpOnly: true,
+  secure: true,         // true on HTTPS (production)
+  sameSite: 'None',     // must be 'None' if frontend and backend are on different domains
+  maxAge: 24 * 60 * 60 * 1000 // 1 day
+});
+
 
     res.status(201).json({
         message: "Food partner registered successfully",
@@ -164,7 +182,13 @@ async function loginFoodPartner(req, res) {
 
     }, process.env.JWT_SECRET)
 
-    res.cookie("token", token)
+    res.cookie('token', token, {
+  httpOnly: true,
+  secure: true,         // true on HTTPS (production)
+  sameSite: 'None',     // must be 'None' if frontend and backend are on different domains
+  maxAge: 24 * 60 * 60 * 1000 // 1 day
+});
+
 
     res.status(200).json({
         message: "Food partner logged in successfully",
@@ -186,51 +210,51 @@ function logoutFoodPartner(req, res) {
 
 // auth.controller for deciding the profile role on reelfeed
 async function getMe(req, res) {
-  try {
-    const token = req.cookies.token;
-    if (!token) return res.status(401).json({ message: "Not authenticated" });
+    try {
+        const token = req.cookies.token;
+        if (!token) return res.status(401).json({ message: "Not authenticated" });
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    let profile;
-    if (decoded.role === "user") {
-      profile = await userModel.findById(decoded.id).select("-password");
-    } else if (decoded.role === "foodPartner") {
-      profile = await foodPartnerModel.findById(decoded.id).select("-password");
+        let profile;
+        if (decoded.role === "user") {
+            profile = await userModel.findById(decoded.id).select("-password");
+        } else if (decoded.role === "foodPartner") {
+            profile = await foodPartnerModel.findById(decoded.id).select("-password");
+        }
+
+        if (!profile) return res.status(404).json({ message: "Profile not found" });
+
+        res.json({ role: decoded.role, profile });
+    } catch (err) {
+        res.status(401).json({ message: "Invalid or expired token" });
     }
-
-    if (!profile) return res.status(404).json({ message: "Profile not found" });
-
-    res.json({ role: decoded.role, profile });
-  } catch (err) {
-    res.status(401).json({ message: "Invalid or expired token" });
-  }
 }
 
 const updateProfile = async (req, res) => {
-  try {
-    const userId = req.user.id; // ✅ Now this will have value from middleware
-    const { nickname, avatar } = req.body;
+    try {
+        const userId = req.user.id; // ✅ Now this will have value from middleware
+        const { nickname, avatar } = req.body;
 
-    const updatedUser = await userModel.findByIdAndUpdate(
-      userId,
-      { nickname, avatar },
-      { new: true }
-    );
+        const updatedUser = await userModel.findByIdAndUpdate(
+            userId,
+            { nickname, avatar },
+            { new: true }
+        );
 
-    if (!updatedUser) {
-      return res.status(404).json({ message: "User not found" });
+        if (!updatedUser) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        res.status(200).json({
+            success: true,
+            message: "Profile updated successfully",
+            user: updatedUser,
+        });
+    } catch (error) {
+        console.error("Update profile error:", error.message);
+        res.status(500).json({ message: error.message });
     }
-
-    res.status(200).json({
-      success: true,
-      message: "Profile updated successfully",
-      user: updatedUser,
-    });
-  } catch (error) {
-    console.error("Update profile error:", error.message);
-    res.status(500).json({ message: error.message });
-  }
 };
 
 
