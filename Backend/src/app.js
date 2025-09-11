@@ -10,9 +10,10 @@ const cors = require('cors');
 
 const app = express();
 app.use(cors({
-    origin: "https://hungry-peeps.vercel.app/",
+    origin: "https://hungry-peeps.vercel.app", // remove trailing slash
     credentials: true
 }));
+
 app.use(cookieParser());
 app.use(express.json());
 
