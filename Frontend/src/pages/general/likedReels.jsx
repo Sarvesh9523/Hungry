@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 
 const Liked = () => {
   const [likedVideos, setLikedVideos] = useState([]);
-  const [activeIndex, setActiveIndex] = useState(null); // Fullscreen reel index
+  const [activeIndex, setActiveIndex] = useState(null); // For full-screen player
   const navigate = useNavigate();
   const token = localStorage.getItem("token");
 
@@ -13,10 +13,10 @@ const Liked = () => {
   useEffect(() => {
     const fetchLiked = async () => {
       try {
-        const response = await axios.get(
-          `${import.meta.env.VITE_BACKEND_URL}/api/food/liked`,
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
+        const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/food/liked`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+
         setLikedVideos(response.data.foods || []);
       } catch (err) {
         console.error("Failed to fetch liked videos:", err);
@@ -28,99 +28,114 @@ const Liked = () => {
     fetchLiked();
   }, [token, navigate]);
 
-  /* ===============================
-     Scroll Handler for Desktop & Mobile
-     =============================== */
-  const handleScroll = (e) => {
+  // Scroll handler for full-screen view (desktop + mobile)
+  const handleScroll = (direction) => {
     if (activeIndex === null) return;
-
-    // Desktop scroll
-    if (e.deltaY > 0 && activeIndex < likedVideos.length - 1) {
+    if (direction === "next" && activeIndex < likedVideos.length - 1) {
       setActiveIndex(activeIndex + 1);
-    } else if (e.deltaY < 0 && activeIndex > 0) {
+    } else if (direction === "prev" && activeIndex > 0) {
       setActiveIndex(activeIndex - 1);
     }
   };
 
-  // Touch scroll for mobile
-  let touchStartY = null;
-
-  const handleTouchStart = (e) => {
-    touchStartY = e.touches[0].clientY;
-  };
-
-  const handleTouchMove = (e) => {
-    if (touchStartY === null) return;
-
-    const touchEndY = e.touches[0].clientY;
-    const deltaY = touchStartY - touchEndY;
-
-    if (deltaY > 50 && activeIndex < likedVideos.length - 1) {
-      setActiveIndex(activeIndex + 1); // Swipe up → Next video
-      touchStartY = null;
-    } else if (deltaY < -50 && activeIndex > 0) {
-      setActiveIndex(activeIndex - 1); // Swipe down → Previous video
-      touchStartY = null;
-    }
-  };
-
+  // Desktop scroll with mouse wheel
   useEffect(() => {
     if (activeIndex !== null) {
-      window.addEventListener("wheel", handleScroll);
-      window.addEventListener("touchstart", handleTouchStart);
-      window.addEventListener("touchmove", handleTouchMove);
-      return () => {
-        window.removeEventListener("wheel", handleScroll);
-        window.removeEventListener("touchstart", handleTouchStart);
-        window.removeEventListener("touchmove", handleTouchMove);
+      const scrollHandler = (e) => {
+        if (e.deltaY > 0) handleScroll("next");
+        else if (e.deltaY < 0) handleScroll("prev");
       };
+
+      window.addEventListener("wheel", scrollHandler);
+      return () => window.removeEventListener("wheel", scrollHandler);
     }
-  }, [activeIndex, likedVideos]);
+  }, [activeIndex, likedVideos.length]);
+
+  // Mobile swipe detection
+  useEffect(() => {
+    if (activeIndex === null) return;
+
+    let touchStartY = 0;
+    let touchEndY = 0;
+
+    const handleTouchStart = (e) => {
+      touchStartY = e.touches[0].clientY;
+    };
+
+    const handleTouchMove = (e) => {
+      touchEndY = e.touches[0].clientY;
+    };
+
+    const handleTouchEnd = () => {
+      if (touchStartY - touchEndY > 50) {
+        handleScroll("next"); // Swipe up
+      } else if (touchEndY - touchStartY > 50) {
+        handleScroll("prev"); // Swipe down
+      }
+    };
+
+    window.addEventListener("touchstart", handleTouchStart);
+    window.addEventListener("touchmove", handleTouchMove);
+    window.addEventListener("touchend", handleTouchEnd);
+
+    return () => {
+      window.removeEventListener("touchstart", handleTouchStart);
+      window.removeEventListener("touchmove", handleTouchMove);
+      window.removeEventListener("touchend", handleTouchEnd);
+    };
+  }, [activeIndex, likedVideos.length]);
 
   return (
-    <main className="liked-page">
+    <main className="liked-container">
+      {/* Header Section */}
+      {activeIndex === null && (
+        <header className="liked-header">
+          <h1 className="liked-title">❤️ Your Liked Reels</h1>
+          <p className="liked-quote">“Collect memories, not just likes.”</p>
+          <div className="liked-stats">
+            Total Liked Videos: <strong>{likedVideos.length}</strong>
+          </div>
+        </header>
+      )}
+
       {/* Thumbnail Grid View */}
       {activeIndex === null && (
-        <section className="liked-grid-wrapper">
+        <section className="liked-grid">
           {likedVideos.length === 0 ? (
-            <p className="empty-message">No liked videos yet.</p>
+            <p className="empty-message">You haven't liked any reels yet.</p>
           ) : (
-            <div className="liked-grid">
-              {likedVideos.map((video, index) => (
-                <div
-                  key={video._id}
-                  className="liked-grid-item"
-                  onClick={() => setActiveIndex(index)} // Open full-screen
-                >
-                  <video
-                    className="liked-grid-video"
-                    src={video.video}
-                    muted
-                    preload="metadata"
-                  />
-                </div>
-              ))}
-            </div>
+            likedVideos.map((video, index) => (
+              <div
+                key={video._id}
+                className="liked-grid-item"
+                onClick={() => setActiveIndex(index)}
+              >
+                <video
+                  className="liked-grid-video"
+                  src={video.video}
+                  muted
+                  style={{ objectFit: "cover", width: "100%", height: "100%" }}
+                />
+              </div>
+            ))
           )}
         </section>
       )}
 
-      {/* Full-screen TikTok/Instagram Style View */}
+      {/* Full-screen Reel View */}
       {activeIndex !== null && (
-        <div className="liked-reel-fullscreen">
-          <button
-            className="liked-close-btn"
-            onClick={() => setActiveIndex(null)}
-          >
+        <div className="reel-fullscreen">
+          <button className="close-btn" onClick={() => setActiveIndex(null)}>
             ✕
           </button>
 
           <video
             key={likedVideos[activeIndex]._id}
-            className="liked-reel-video"
+            className="reel-video"
             src={likedVideos[activeIndex].video}
             autoPlay
-            controls
+            loop
+            controls={false}
           />
         </div>
       )}
