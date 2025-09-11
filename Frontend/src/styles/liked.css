@@ -1,13 +1,22 @@
 @import "./theme.css";
 
-/* ---------- Liked Page Wrapper ---------- */
-.liked-container {
+/* ===============================
+   Liked Page Base
+   =============================== */
+.liked-page {
   padding: var(--space-4);
   max-width: 1200px;
   margin: 0 auto;
+  background: var(--color-bg);
 }
 
-/* ---------- Grid Layout (Thumbnail View) ---------- */
+/* ===============================
+   Grid Layout (Thumbnails)
+   =============================== */
+.liked-grid-wrapper {
+  width: 100%;
+}
+
 .liked-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
@@ -30,42 +39,33 @@
   box-shadow: var(--shadow-md);
 }
 
-.liked-grid-item video,
-.liked-grid-item img {
+.liked-grid-video {
   width: 100%;
   height: 100%;
   object-fit: cover;
   display: block;
   border-radius: var(--radius-md);
+  background: var(--color-surface-alt);
 }
 
-/* ---------- Thumbnail Overlay Info ---------- */
-.liked-overlay {
-  position: absolute;
-  bottom: 0;
-  width: 100%;
-  background: rgba(0, 0, 0, 0.6);
-  color: #fff;
-  padding: var(--space-2);
-  font-size: 12px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+/* ===============================
+   Empty State
+   =============================== */
+.empty-message {
+  text-align: center;
+  padding: var(--space-8);
+  color: var(--color-text-secondary);
+  font-size: 16px;
 }
 
-.liked-overlay span {
-  display: flex;
-  align-items: center;
-  gap: var(--space-1);
-}
-
-/* ---------- Full-screen Reel View ---------- */
-.reel-fullscreen {
+/* ===============================
+   Full-screen Reel View
+   =============================== */
+.liked-reel-fullscreen {
   position: fixed;
   inset: 0;
   background: var(--color-bg);
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
   z-index: 9999;
@@ -73,24 +73,21 @@
   animation: fadeIn 0.3s ease-in-out;
 }
 
-.reel-video {
-  max-width: 500px;
+.liked-reel-video {
   width: 100%;
   height: 100%;
+  max-width: 500px;
   object-fit: contain;
-  background: var(--color-surface);
   border-radius: var(--radius-md);
-  transition: all var(--transition-base);
   box-shadow: var(--shadow-md);
+  background: var(--color-surface);
+  transition: all var(--transition-base);
 }
 
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-/* ---------- Close Button ---------- */
-.close-btn {
+/* ===============================
+   Close Button
+   =============================== */
+.liked-close-btn {
   position: absolute;
   top: var(--space-4);
   right: var(--space-4);
@@ -102,80 +99,56 @@
   cursor: pointer;
   border-radius: var(--radius-md);
   transition: background var(--transition-base);
+  z-index: 10000;
 }
 
-.close-btn:hover {
+.liked-close-btn:hover {
   background: rgba(0, 0, 0, 0.8);
 }
 
-/* ---------- Reel Info Section ---------- */
-.reel-info {
-  position: absolute;
-  bottom: 60px;
-  width: 100%;
-  text-align: center;
-  color: var(--color-text);
-  background: var(--color-surface-alt);
-  padding: var(--space-4);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-sm);
+/* ===============================
+   Animations
+   =============================== */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
-.reel-info h2 {
-  font-size: 18px;
-  margin-bottom: var(--space-2);
-}
-
-.reel-info p {
-  font-size: 14px;
-  color: var(--color-text-secondary);
-}
-
-/* ---------- Empty State ---------- */
-.empty-message {
-  text-align: center;
-  padding: var(--space-8);
-  color: var(--color-text-secondary);
-  font-size: 16px;
-}
-
-/* ---------- Responsive Layout ---------- */
-
-/* Small phones (<480px) */
+/* ===============================
+   Responsive Layout
+   =============================== */
 @media (max-width: 480px) {
   .liked-grid {
     grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
     gap: var(--space-2);
   }
 
-  .close-btn {
+  .liked-close-btn {
     top: var(--space-3);
     right: var(--space-3);
     font-size: 18px;
     padding: var(--space-1) var(--space-2);
   }
 
-  .reel-info h2 {
-    font-size: 16px;
-  }
-
-  .reel-info p {
-    font-size: 12px;
+  .liked-reel-video {
+    max-width: 100%;
   }
 }
 
-/* Tablets (481px - 768px) */
 @media (min-width: 481px) and (max-width: 768px) {
   .liked-grid {
     grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
   }
 
-  .reel-video {
+  .liked-reel-video {
     max-width: 420px;
   }
 }
 
-/* Desktop (>1024px) */
 @media (min-width: 1024px) {
   .liked-grid {
     grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
@@ -183,7 +156,7 @@
     margin: 0 auto;
   }
 
-  .reel-video {
+  .liked-reel-video {
     max-width: 600px;
   }
 }
