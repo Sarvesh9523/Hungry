@@ -67,7 +67,7 @@ const Home = () => {
       items={videos}
       onLike={likeVideo}
       onSave={saveVideo}
-      emptyMessage="No videos available."
+      emptyMessage=" "
     />
   );
 };

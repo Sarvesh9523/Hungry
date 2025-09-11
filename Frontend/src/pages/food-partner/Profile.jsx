@@ -76,6 +76,7 @@ const FoodPartnerProfile = () => {
                     loop
                     autoPlay
                     controls
+                    preload='metadata'
                     
                   />
                 </div>
