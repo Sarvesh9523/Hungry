@@ -74,6 +74,7 @@ const FoodPartnerProfile = () => {
                     src={v.video}
                     muted
                     loop
+                    playsInline
                   />
                 </div>
               ))
