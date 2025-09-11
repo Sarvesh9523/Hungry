@@ -1,121 +1,171 @@
 @import './theme.css';
 
-/* === Base Page === */
+/* Page container: full screen and clean background */
 .reels-page {
   height: 100dvh;
   background: var(--color-bg, #000);
   overflow: hidden;
+  display: flex;
+  justify-content: center;
 }
 
+/* Feed container - vertical scroll */
 .reels-feed {
   height: 100%;
   width: 100%;
   overflow-y: auto;
+  overflow-x: hidden;
   scroll-snap-type: y mandatory;
   overscroll-behavior-y: contain;
   -webkit-overflow-scrolling: touch;
   scroll-behavior: smooth;
+  display: block; /* Prevents multiple videos side by side */
 }
 
-/* === Reel Section === */
+/* Each reel takes full viewport height */
 .reel {
   position: relative;
-  height: 100dvh;
+  height: 100dvh; /* Full screen per reel */
   width: 100%;
   scroll-snap-align: start;
   background: #000;
   display: flex;
   justify-content: center;
   align-items: center;
+  overflow: hidden;
 }
 
-
+/* ===============================
+   VIDEO STYLING
+   =============================== */
 .reel-video {
   position: absolute;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
   width: 100%;
-  max-width: 420px; /* fixed max width for desktop like Instagram/TikTok */
-  aspect-ratio: 9 / 16; /* maintain vertical video dimensions */
+  max-width: 420px; /* Standard Instagram reel width */
+  aspect-ratio: 9 / 16;
   height: auto;
   object-fit: cover;
   background: #000;
-  border-radius: 12px; /* optional rounded corners */
+  border-radius: 12px;
 }
 
-
-/* === Overlay === */
+/* ===============================
+   OVERLAY (Gradient + Buttons)
+   =============================== */
 .reel-overlay {
   position: absolute;
   inset: 0;
-  max-width: 420px; /* matches video width */
+  max-width: 420px;
   margin: auto;
   display: flex;
   align-items: flex-end;
-  pointer-events: none;
+  justify-content: space-between;
+  pointer-events: none; /* content clicks allowed only on controls */
+  padding: 16px;
 }
 
-
+/* Gradient behind buttons and text */
 .reel-overlay-gradient {
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg,
-    rgba(0,0,0,0.2) 0%,
-    rgba(0,0,0,0.05) 30%,
-    rgba(0,0,0,0.5) 100%
+  background: linear-gradient(
+    180deg,
+    rgba(0, 0, 0, 0.25) 0%,
+    rgba(0, 0, 0, 0.05) 30%,
+    rgba(0, 0, 0, 0.35) 65%,
+    rgba(0, 0, 0, 0.65) 100%
   );
 }
 
-/* === Content (Bottom Left) === */
+/* ===============================
+   VIDEO CONTENT (Description + Button)
+   =============================== */
 .reel-content {
   position: relative;
   width: 100%;
-  padding: 1.5rem;
-  padding-bottom: calc(env(safe-area-inset-bottom, 0) + 80px);
+  padding: 16px;
+  padding-bottom: calc(env(safe-area-inset-bottom, 0) + 72px);
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
-  pointer-events: auto;
+  padding-right: 4.5rem;
+  gap: 12px;
+  pointer-events: auto; /* allow button clicks */
 }
 
+/* Truncate long text to two lines */
 .reel-description {
   color: #fff;
-  text-shadow: 0 1px 2px rgba(0,0,0,0.6);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
   font-size: 1rem;
   line-height: 1.3;
-  max-width: 85%;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+  max-width: 90ch;
 }
 
+/* Visit Store button */
 .reel-btn {
   align-self: flex-start;
-  background: var(--color-accent, #ff004c);
+  background: var(--color-accent, #ff3b30);
   color: #fff;
   border-radius: 999px;
   padding: 10px 16px;
-  font-weight: 600;
+  font-weight: 700;
+  letter-spacing: 0.3px;
   text-decoration: none;
-  box-shadow: var(--shadow-md);
-  transition: 0.2s;
+  box-shadow: var(--shadow-md, 0 4px 6px rgba(0, 0, 0, 0.2));
+  transition: transform 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
 }
-
 .reel-btn:hover {
-  background: var(--color-accent-hover, #e60042);
+  background: var(--color-accent-hover, #ff1f1a);
+}
+.reel-btn:active {
+  transform: translateY(1px);
+}
+.reel-btn:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 3px;
 }
 
-/* === Actions (Right Side) === */
+/* ===============================
+   ACTION BUTTONS (Like, Save, Comment)
+   =============================== */
 .reel-actions {
   position: absolute;
   right: 10px;
   bottom: 96px;
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  pointer-events: auto;
+  gap: 14px;
+  pointer-events: auto; /* buttons clickable */
+}
+
+.reel-action {
+  width: 48px;
+  height: 48px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  background: rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(2px);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: var(--shadow-md, 0 4px 6px rgba(0, 0, 0, 0.2));
+  transition: transform 0.2s ease;
+}
+.reel-action:active {
+  transform: translateY(1px);
+}
+
+.reel-action__count {
+  color: #fff;
+  text-align: center;
+  font-size: 12px;
 }
 
 .reel-action-group {
@@ -126,69 +176,44 @@
   color: #fff;
 }
 
-.reel-action {
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  display: grid;
-  place-items: center;
-  background: rgba(0,0,0,0.3);
-  color: #fff;
-  border: 1px solid rgba(255,255,255,0.15);
-  transition: 0.2s;
-  cursor: pointer;
-}
-
-.reel-action:hover {
-  background: rgba(255,255,255,0.2);
-}
-
-.reel-action__count {
-  font-size: 12px;
-  color: #fff;
-  text-align: center;
-}
-
-/* === Empty State === */
+/* ===============================
+   EMPTY STATE
+   =============================== */
 .empty-state {
   position: absolute;
   inset: 0;
   display: grid;
   place-items: center;
   color: #fff;
+  font-size: 1.2rem;
+  text-align: center;
 }
 
-/* === Desktop View === */
-@media (min-width: 768px) {
-  .reels-feed {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: 20px;
-  }
-
-  .reel {
-    max-width: 400px;
-    height: 90vh;
-    border-radius: 16px;
-    overflow: hidden;
-  }
-
-  .reel-video {
-    object-fit: contain;
-    background: #000;
-  }
-}
-
+/* ===============================
+   DESKTOP RESPONSIVE STYLING
+   =============================== */
 @media (min-width: 1024px) {
   .reels-feed {
     display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  /* Center video in middle of screen */
+  .reel {
     justify-content: center;
     align-items: center;
   }
 
+  /* Keep reel video fixed size like Instagram */
   .reel-video {
     max-width: 420px;
+    border-radius: 12px;
+  }
+
+  /* Overlay and actions aligned with video */
+  .reel-overlay {
+    max-width: 420px;
+    padding: 24px;
   }
 }
-
