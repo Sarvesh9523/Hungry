@@ -16,8 +16,7 @@ const UserLogin = () => {
       // Send login request
       const response = await axios.post(
         `${import.meta.env.VITE_BACKEND_URL}/api/auth/user/login`,
-        { email, password },
-        { withCredentials: true } // for desktop cookies
+        { email, password }
       );
 
       console.log("Login response:", response.data);

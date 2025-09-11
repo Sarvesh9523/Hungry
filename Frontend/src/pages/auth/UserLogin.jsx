@@ -15,16 +15,11 @@ const UserLogin = () => {
 
       const response = await axios.post(
         `${import.meta.env.VITE_BACKEND_URL}/api/auth/user/login`,
-        { email, password },
-        { withCredentials: true } // still set for desktop cookies
+        { email, password }
       );
 
-      console.log(response.data);
-
-      // Save token in localStorage for mobile / cross-domain usage
+      // Save token in localStorage
       localStorage.setItem("token", response.data.token);
-
-      // Optionally save user info in localStorage
       localStorage.setItem("user", JSON.stringify(response.data.user));
 
       navigate("/home"); // Redirect after login

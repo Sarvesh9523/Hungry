@@ -15,22 +15,17 @@ const FoodPartnerLogin = () => {
 
       const response = await axios.post(
         `${import.meta.env.VITE_BACKEND_URL}/api/auth/food-partner/login`,
-        { email, password },
-        { withCredentials: true } // still for desktop cookies
+        { email, password }
       );
 
-      console.log("Login response:", response.data);
-
-      // --- MOBILE SAFE --- store JWT in localStorage
       localStorage.setItem("token", response.data.token);
       localStorage.setItem("foodPartner", JSON.stringify(response.data.foodPartner));
 
-      // Redirect to dashboard
       const foodPartnerId = response.data.foodPartner._id;
       navigate(`/food-partner/${foodPartnerId}`);
     } catch (err) {
-      alert("Invalid login credentials");
-      console.error("Login error:", err);
+      alert("Invalid Login Credentials");
+      console.error("Error", err);
     }
   };
 

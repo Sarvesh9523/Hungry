@@ -24,7 +24,7 @@ const CreateFood = () => {
     }, [ videoFile ]);
 
     const onFileChange = (e) => {
-        const file = e.target.files && e.target.files[ 0 ];
+        const file = e.target.files && e.target.files[0];
         if (!file) { setVideoFile(null); setFileError(''); return; }
         if (!file.type.startsWith('video/')) { setFileError('Please select a valid video file.'); return; }
         setFileError('');
@@ -34,37 +34,41 @@ const CreateFood = () => {
     const onDrop = (e) => {
         e.preventDefault();
         e.stopPropagation();
-        const file = e.dataTransfer?.files?.[ 0 ];
+        const file = e.dataTransfer?.files?.[0];
         if (!file) { return; }
         if (!file.type.startsWith('video/')) { setFileError('Please drop a valid video file.'); return; }
         setFileError('');
         setVideoFile(file);
     };
 
-    const onDragOver = (e) => {
-        e.preventDefault();
-    };
-
+    const onDragOver = (e) => { e.preventDefault(); };
     const openFileDialog = () => fileInputRef.current?.click();
 
     const onSubmit = async (e) => {
         e.preventDefault();
 
-        const formData = new FormData();
+        const token = localStorage.getItem("token"); // ✅ use token from localStorage
+        if (!token) return alert("You must be logged in to create food.");
 
+        const formData = new FormData();
         formData.append('name', name);
         formData.append('description', description);
         formData.append("video", videoFile);
 
-        const response = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/food`, formData, {
-            withCredentials: true,
-        })
-        const foodPartnerId = response.data.foodPartner._id
+        try {
+            const response = await axios.post(
+                `${import.meta.env.VITE_BACKEND_URL}/api/food`,
+                formData,
+                { headers: { Authorization: `Bearer ${token}` } } // ✅ send token
+            );
 
-        console.log(response.data);
-        navigate(`/food-partner/${foodPartnerId}`); // Redirect to home or another page after successful creation
-        // Optionally reset
-        // setName(''); setDescription(''); setVideoFile(null);
+            const foodPartnerId = response.data.foodPartner._id;
+            console.log(response.data);
+            navigate(`/food-partner/${foodPartnerId}`);
+        } catch (error) {
+            console.error("Error creating food:", error);
+            alert("Failed to create food. Please try again.");
+        }
     };
 
     const isDisabled = useMemo(() => !name.trim() || !videoFile, [ name, videoFile ]);
