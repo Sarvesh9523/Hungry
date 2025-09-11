@@ -73,6 +73,7 @@ const FoodPartnerProfile = () => {
                     style={{ objectFit: "cover", width: "100%", height: "100%" }}
                     src={v.video}
                     muted
+                    loop
                   />
                 </div>
               ))
