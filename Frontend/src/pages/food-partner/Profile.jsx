@@ -75,6 +75,7 @@ const FoodPartnerProfile = () => {
                     muted
                     loop
                     preload='metadata'
+                    autoPlay
                     controls
                     
                   />
