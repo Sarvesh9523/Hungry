@@ -8,7 +8,17 @@ const BottomNav = () => {
   const [profileId, setProfileId] = useState(null)
 
   useEffect(() => {
-    axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/auth/me`, { withCredentials: true })
+    const token = localStorage.getItem("token")
+
+    if (!token) {
+      setRole(null)
+      setProfileId(null)
+      return
+    }
+
+    axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/auth/me`, {
+      headers: { Authorization: `Bearer ${token}` }
+    })
       .then(res => {
         setRole(res.data.role)
         setProfileId(res.data.profile._id)
