@@ -83,10 +83,18 @@
 
 /* Video fills entire screen with no border like Instagram/TikTok */
 .reel-video {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
   width: 100%;
-  height: 100%;
+  height: auto;
+  max-width: 420px; /* Reel width on desktop */
+  aspect-ratio: 9 / 16;
   object-fit: cover;
-  background: black;
+  object-position: center;
+  background: #000;
+  border-radius: 12px;
 }
 
 @keyframes fadeIn {
