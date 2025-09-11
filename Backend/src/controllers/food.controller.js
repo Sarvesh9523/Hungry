@@ -75,12 +75,12 @@ async function getLikedFood(req, res) {
   try {
     const userId = req.user._id;
 
-    // Find all liked foods of the logged-in user
+    // Fetch all likes by user and populate with food data
     const likedFoods = await likeModel.find({ user: userId }).populate("food");
 
-    // Extract only the actual food data
+    // Extract only valid food documents
     const foods = likedFoods
-      .filter(like => like.food) // ensure food exists
+      .filter(like => like.food) // filter out deleted foods
       .map(like => like.food);
 
     res.status(200).json({

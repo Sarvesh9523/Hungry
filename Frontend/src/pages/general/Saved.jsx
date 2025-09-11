@@ -48,7 +48,7 @@ const Saved = () => {
     <ReelFeed
       items={videos}
       onSave={removeSaved}
-      emptyMessage="No saved videos yet."
+      emptyMessage=" "
     />
   )
 }
