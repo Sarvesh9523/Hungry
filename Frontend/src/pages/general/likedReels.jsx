@@ -3,54 +3,71 @@ import '../../styles/reels.css';
 import axios from 'axios';
 import ReelFeed from '../../components/ReelFeed';
 
-const Saved = () => {
+const Liked = () => {
   const [videos, setVideos] = useState([]);
   const token = localStorage.getItem("token"); // mobile-safe JWT
 
-  // Fetch liked videos
+  // Fetch liked videos on mount
   useEffect(() => {
-    axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/food/liked`, {
-      headers: { Authorization: `Bearer ${token}` }
-    })
-    .then(response => {
-      const LikedFoods = response.data.savedFoods.map(item => ({
-        _id: item.food._id,
-        video: item.food.video,
-        description: item.food.description,
-        likeCount: item.food.likeCount,
-        savesCount: item.food.savesCount,
-        commentsCount: item.food.commentsCount,
-        foodPartner: item.food.foodPartner,
-      }));
-      setVideos(LikedFoods);
-    })
-    .catch(err => {
-      console.error("Failed to fetch liked videos", err);
-      alert("Session expired. Please login again.");
-      window.location.href = "/home";
-    });
+    const fetchLikedVideos = async () => {
+      try {
+        const response = await axios.get(
+          `${import.meta.env.VITE_BACKEND_URL}/api/food/liked`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+
+        // Ensure backend returns `foods`
+        const likedFoods = (response.data.foods || []).map((item) => ({
+          _id: item._id,
+          video: item.video,
+          description: item.description,
+          likeCount: item.likeCount ?? 0,
+          savesCount: item.savesCount ?? 0,
+          commentsCount: item.commentsCount ?? 0,
+          foodPartner: item.foodPartner,
+        }));
+
+        setVideos(likedFoods);
+      } catch (err) {
+        console.error("Failed to fetch liked videos", err);
+        alert("Session expired. Please login again.");
+        window.location.href = "/user/login";
+      }
+    };
+
+    fetchLikedVideos();
   }, [token]);
 
-  // Remove Liked video
-  const removeLiked = async (item) => {
+  // Unlike a video
+  const unlikeVideo = async (item) => {
     try {
-      await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/food/liked`,
+      const response = await axios.post(
+        `${import.meta.env.VITE_BACKEND_URL}/api/food/like`,
         { foodId: item._id },
-        { headers: { Authorization: `Bearer ${token}` } }
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
       );
-      setVideos(prev => prev.map(v => v._id === item._id ? { ...v, savesCount: Math.max(0, (v.savesCount ?? 1) - 1) } : v));
+
+      if (response.data.message === "Food unliked successfully") {
+        // Remove from UI after unliking
+        setVideos((prev) => prev.filter((v) => v._id !== item._id));
+      }
     } catch (err) {
-      console.error("Failed to remove saved video", err);
+      console.error("Failed to unlike video", err);
+      alert("Could not unlike the video. Try again later.");
     }
-  }
+  };
 
   return (
     <ReelFeed
       items={videos}
-      onSave={removeLiked}
-      emptyMessage="No saved videos yet."
+      onLike={unlikeVideo} // Pass unlike handler
+      emptyMessage="No liked videos yet."
     />
-  )
-}
+  );
+};
 
-export default Saved;
+export default Liked;
