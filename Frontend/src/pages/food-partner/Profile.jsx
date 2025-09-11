@@ -74,8 +74,9 @@ const FoodPartnerProfile = () => {
                     src={v.video}
                     muted
                     loop
+                    autoPlay
                     controls
-                    poster={thumbnails[v._id]}
+                    
                   />
                 </div>
               ))
