@@ -1,77 +1,119 @@
 import React, { useEffect, useState } from 'react';
-import '../../styles/reels.css';
+import "../../styles/liked.css";
 import axios from 'axios';
-import ReelFeed from '../../components/ReelFeed';
+import { useNavigate } from 'react-router-dom';
 
 const Liked = () => {
-  const [videos, setVideos] = useState([]);
+  const [likedVideos, setLikedVideos] = useState([]);
+  const [activeIndex, setActiveIndex] = useState(null); // For full-screen player
+  const navigate = useNavigate();
   const token = localStorage.getItem("token");
 
-  // Fetch liked videos on component mount
+  // Fetch liked videos
   useEffect(() => {
-    const fetchLikedVideos = async () => {
+    const fetchLiked = async () => {
       try {
-        const response = await axios.get(
-          `${import.meta.env.VITE_BACKEND_URL}/api/food/liked`,
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          }
-        );
+        const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/food/liked`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
 
-        // Backend returns foods array
-        const likedFoods = (response.data.foods || []).map(item => ({
-          _id: item._id,
-          video: item.video,
-          description: item.description,
-          likeCount: item.likeCount ?? 0,
-          savesCount: item.savesCount ?? 0,
-          commentsCount: item.commentsCount ?? 0,
-          foodPartner: item.foodPartner,
-        }));
-
-        setVideos(likedFoods);
+        setLikedVideos(response.data.foods || []);
       } catch (err) {
-        console.error("Failed to fetch liked videos", err.response?.data || err.message);
-
-        if (err.response?.status === 401) {
-          alert("Session expired. Please login again.");
-          window.location.href = "/user/login";
-        } else {
-          alert(err.response?.data?.message || "Something went wrong.");
-        }
+        console.error("Failed to fetch liked videos:", err);
+        alert("Session expired. Please login again.");
+        navigate("/user/login");
       }
     };
 
-    fetchLikedVideos();
-  }, [token]);
+    fetchLiked();
+  }, [token, navigate]);
 
-  // Unlike a video
-  const unlikeVideo = async (item) => {
-    try {
-      const response = await axios.post(
-        `${import.meta.env.VITE_BACKEND_URL}/api/food/like`,
-        { foodId: item._id },
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-
-      if (response.data.message === "Food unliked successfully") {
-        // Remove the unliked video from the list
-        setVideos(prev => prev.filter(v => v._id !== item._id));
-      }
-    } catch (err) {
-      console.error("Failed to unlike video", err.response?.data || err.message);
-      alert("Could not unlike the video. Please try again later.");
+  // Scroll handler for full-screen view
+  const handleScroll = (e) => {
+    if (activeIndex === null) return;
+    if (e.deltaY > 0 && activeIndex < likedVideos.length - 1) {
+      setActiveIndex(activeIndex + 1);
+    } else if (e.deltaY < 0 && activeIndex > 0) {
+      setActiveIndex(activeIndex - 1);
     }
   };
 
+  // Add scroll listener only when full-screen mode is active
+  useEffect(() => {
+    if (activeIndex !== null) {
+      window.addEventListener("wheel", handleScroll);
+      return () => window.removeEventListener("wheel", handleScroll);
+    }
+  }, [activeIndex]);
+
   return (
-    <ReelFeed
-      items={videos}
-      onLike={unlikeVideo}
-      emptyMessage="No liked videos yet."
-    />
+    <main className="profile-page">
+      {/* Thumbnail Grid View */}
+      {activeIndex === null && (
+        <>
+          <header className="profile-header">
+            <div className="profile-meta">
+              <h1 className="profile-pill profile-business">Liked Reels</h1>
+              <p className="profile-pill profile-address">
+                Your favorite videos in one place.
+              </p>
+            </div>
+            <div className="profile-stats">
+              <div className="profile-stat">
+                <span className="profile-stat-label">Total Liked</span>
+                <span className="profile-stat-value">{likedVideos.length}</span>
+              </div>
+            </div>
+          </header>
+
+          <section className="profile-grid" aria-label="Liked Videos">
+            {likedVideos.length === 0 ? (
+              <p>No liked videos yet.</p>
+            ) : (
+              likedVideos.map((video, index) => (
+                <div
+                  key={video._id}
+                  className="profile-grid-item"
+                  onClick={() => setActiveIndex(index)} // Open full-screen
+                >
+                  <video
+                    className="profile-grid-video"
+                    src={video.video}
+                    muted
+                    style={{ objectFit: "cover", width: "100%", height: "100%" }}
+                  />
+                </div>
+              ))
+            )}
+          </section>
+        </>
+      )}
+
+      {/* Full-screen TikTok/Instagram Style View */}
+      {activeIndex !== null && (
+        <div className="reel-fullscreen">
+          <button
+            className="close-btn"
+            onClick={() => setActiveIndex(null)}
+          >
+            ✕
+          </button>
+
+          <video
+            key={likedVideos[activeIndex]._id}
+            className="reel-video"
+            src={likedVideos[activeIndex].video}
+            autoPlay
+            controls
+          />
+
+          <div className="reel-info">
+            <h2>{likedVideos[activeIndex].description}</h2>
+            <p>❤️ {likedVideos[activeIndex].likeCount} Likes</p>
+          </div>
+        </div>
+      )}
+    </main>
   );
 };
 
