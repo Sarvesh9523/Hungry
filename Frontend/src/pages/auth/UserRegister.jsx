@@ -1,78 +1,87 @@
 import React from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import '../../styles/auth-shared.css';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
 
-const UserLogin = () => {
+const UserRegister = () => {
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    try {
-      const email = e.target.email.value;
-      const password = e.target.password.value;
+    const firstName = e.target.firstName.value.trim();
+    const lastName = e.target.lastName.value.trim();
+    const email = e.target.email.value.trim();
+    const password = e.target.password.value;
 
-      // Send login request
+    try {
       const response = await axios.post(
-        `${import.meta.env.VITE_BACKEND_URL}/api/auth/user/login`,
-        { email, password }
+        `${import.meta.env.VITE_BACKEND_URL}/api/auth/user/register`,
+        {
+          fullName: firstName + " " + lastName,
+          email,
+          password
+        },
+        { withCredentials: true } // send cookies for desktop sessions
       );
 
-      console.log("Login response:", response.data);
+      console.log("Registration response:", response.data);
 
-      // --- MOBILE SAFE --- Save JWT in localStorage
+      // --- MOBILE SAFE: store JWT and user info in localStorage ---
       localStorage.setItem("token", response.data.token);
-
-      // Optionally save user info
       localStorage.setItem("user", JSON.stringify(response.data.user));
 
-      // Redirect after login
+      // Redirect after successful registration
       navigate("/home");
     } catch (err) {
-      alert("Invalid Login Credentials");
-      console.error("Login error:", err);
+      console.error("Registration error:", err);
+      alert(err.response?.data?.message || "Registration failed");
     }
   };
 
   return (
     <div className="auth-page-wrapper">
-      <div className="auth-card" role="region" aria-labelledby="user-login-title">
+      <div className="auth-card" role="region" aria-labelledby="user-register-title">
         <header>
-          <h1 id="user-login-title" className="auth-title">Welcome back</h1>
-          <p className="auth-subtitle">Sign in to continue your food journey.</p>
+          <h1 id="user-register-title" className="auth-title">Create your account</h1>
+          <p className="auth-subtitle">Join to explore and enjoy delicious meals.</p>
         </header>
+
+        <nav className="auth-alt-action" style={{ marginTop: '-4px' }}>
+          <strong style={{ fontWeight: 600 }}>Switch:</strong> <Link to="/user/register">User</Link> • <Link to="/food-partner/register">Food partner</Link>
+        </nav>
+
         <form className="auth-form" onSubmit={handleSubmit} noValidate>
+          <div className="two-col">
+            <div className="field-group">
+              <label htmlFor="firstName">First Name</label>
+              <input id="firstName" name="firstName" placeholder="Jane" autoComplete="given-name" required />
+            </div>
+            <div className="field-group">
+              <label htmlFor="lastName">Last Name</label>
+              <input id="lastName" name="lastName" placeholder="Doe" autoComplete="family-name" required />
+            </div>
+          </div>
+
           <div className="field-group">
             <label htmlFor="email">Email</label>
-            <input
-              id="email"
-              name="email"
-              type="email"
-              placeholder="you@example.com"
-              autoComplete="email"
-              required
-            />
+            <input id="email" name="email" type="email" placeholder="you@example.com" autoComplete="email" required />
           </div>
+
           <div className="field-group">
             <label htmlFor="password">Password</label>
-            <input
-              id="password"
-              name="password"
-              type="password"
-              placeholder="••••••••"
-              autoComplete="current-password"
-              required
-            />
+            <input id="password" name="password" type="password" placeholder="••••••••" autoComplete="new-password" required />
           </div>
-          <button className="auth-submit" type="submit">Sign In</button>
+
+          <button className="auth-submit" type="submit">Sign Up</button>
         </form>
+
         <div className="auth-alt-action">
-          New here? <a href="/user/register">Create account</a>
+          Already have an account? <Link to="/user/login">Sign in</Link>
         </div>
       </div>
     </div>
   );
 };
 
-export default UserLogin;
+export default UserRegister;
