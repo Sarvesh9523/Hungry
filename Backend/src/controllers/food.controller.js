@@ -72,26 +72,31 @@ async function likeFood(req, res) {
 }
 
 async function getLikedFood(req, res) {
-    try {
-        const userId = req.user._id;
+  try {
+    const userId = req.user._id;
 
-        // Find all likes of the logged-in user
-        const likedFoods = await likeModel.find({ user: userId }).populate("food");
+    // Find all liked foods of the logged-in user
+    const likedFoods = await likeModel.find({ user: userId }).populate("food");
 
-        // Extract only food data
-        const foods = likedFoods.map(like => like.food);
+    // Extract only the actual food data
+    const foods = likedFoods
+      .filter(like => like.food) // ensure food exists
+      .map(like => like.food);
 
-        res.status(200).json({
-            success: true,
-            foods
-        });
-    } catch (error) {
-        res.status(500).json({
-            success: false,
-            message: error.message
-        });
-    }
+    res.status(200).json({
+      success: true,
+      foods
+    });
+  } catch (error) {
+    console.error("Error fetching liked foods:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch liked foods",
+      error: error.message
+    });
+  }
 }
+
 
 async function saveFood(req, res) {
 

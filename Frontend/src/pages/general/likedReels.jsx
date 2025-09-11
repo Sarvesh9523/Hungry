@@ -5,9 +5,9 @@ import ReelFeed from '../../components/ReelFeed';
 
 const Liked = () => {
   const [videos, setVideos] = useState([]);
-  const token = localStorage.getItem("token"); // mobile-safe JWT
+  const token = localStorage.getItem("token");
 
-  // Fetch liked videos on mount
+  // Fetch liked videos on component mount
   useEffect(() => {
     const fetchLikedVideos = async () => {
       try {
@@ -18,8 +18,8 @@ const Liked = () => {
           }
         );
 
-        // Ensure backend returns `foods`
-        const likedFoods = (response.data.foods || []).map((item) => ({
+        // Backend returns foods array
+        const likedFoods = (response.data.foods || []).map(item => ({
           _id: item._id,
           video: item.video,
           description: item.description,
@@ -31,9 +31,14 @@ const Liked = () => {
 
         setVideos(likedFoods);
       } catch (err) {
-        console.error("Failed to fetch liked videos", err);
-        alert("Session expired. Please login again.");
-        window.location.href = "/user/login";
+        console.error("Failed to fetch liked videos", err.response?.data || err.message);
+
+        if (err.response?.status === 401) {
+          alert("Session expired. Please login again.");
+          window.location.href = "/user/login";
+        } else {
+          alert(err.response?.data?.message || "Something went wrong.");
+        }
       }
     };
 
@@ -52,19 +57,19 @@ const Liked = () => {
       );
 
       if (response.data.message === "Food unliked successfully") {
-        // Remove from UI after unliking
-        setVideos((prev) => prev.filter((v) => v._id !== item._id));
+        // Remove the unliked video from the list
+        setVideos(prev => prev.filter(v => v._id !== item._id));
       }
     } catch (err) {
-      console.error("Failed to unlike video", err);
-      alert("Could not unlike the video. Try again later.");
+      console.error("Failed to unlike video", err.response?.data || err.message);
+      alert("Could not unlike the video. Please try again later.");
     }
   };
 
   return (
     <ReelFeed
       items={videos}
-      onLike={unlikeVideo} // Pass unlike handler
+      onLike={unlikeVideo}
       emptyMessage="No liked videos yet."
     />
   );
