@@ -10,17 +10,21 @@ const UserLogin = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const email = e.target.email.value;
+    try{
+      const email = e.target.email.value;
     const password = e.target.password.value;
 
     const response = await axios.post("http://localhost:3000/api/auth/user/login", {
       email,
       password
     }, { withCredentials: true });
-
     console.log(response.data);
 
-    navigate("/"); // Redirect to home after login
+    navigate("/home"); // Redirect to home after login
+    }catch(err){
+      alert("Invalid Login Password")
+      console.log("Error", err)
+    }
 
   };
 

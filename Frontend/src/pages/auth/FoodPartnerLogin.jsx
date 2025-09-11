@@ -18,9 +18,11 @@ const FoodPartnerLogin = () => {
       password
     }, { withCredentials: true });
 
+    const foodPartnerId = response.data.foodPartner._id
+
     console.log(response.data);
 
-    navigate("/create-food"); // Redirect to create food page after login
+    navigate(`/food-partner/${foodPartnerId}`); // Redirect to create food page after login
 
   };
 
