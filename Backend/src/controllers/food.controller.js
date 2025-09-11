@@ -71,6 +71,28 @@ async function likeFood(req, res) {
 
 }
 
+async function getLikedFood(req, res) {
+    try {
+        const userId = req.user._id;
+
+        // Find all likes of the logged-in user
+        const likedFoods = await likeModel.find({ user: userId }).populate("food");
+
+        // Extract only food data
+        const foods = likedFoods.map(like => like.food);
+
+        res.status(200).json({
+            success: true,
+            foods
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
+    }
+}
+
 async function saveFood(req, res) {
 
     const { foodId } = req.body;
@@ -134,6 +156,7 @@ module.exports = {
     createFood,
     getFoodItems,
     likeFood,
+    getLikedFood,
     saveFood,
     getSaveFood
 }

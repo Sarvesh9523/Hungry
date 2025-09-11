@@ -7,9 +7,9 @@ const Saved = () => {
   const [videos, setVideos] = useState([]);
   const token = localStorage.getItem("token"); // mobile-safe JWT
 
-  // Fetch saved videos
+  // Fetch liked videos
   useEffect(() => {
-    axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/food/like`, {
+    axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/food/liked`, {
       headers: { Authorization: `Bearer ${token}` }
     })
     .then(response => {
@@ -25,16 +25,16 @@ const Saved = () => {
       setVideos(LikedFoods);
     })
     .catch(err => {
-      console.error("Failed to fetch saved videos", err);
+      console.error("Failed to fetch liked videos", err);
       alert("Session expired. Please login again.");
-      window.location.href = "/user/login";
+      window.location.href = "/home";
     });
   }, [token]);
 
   // Remove Liked video
   const removeLiked = async (item) => {
     try {
-      await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/food/save`,
+      await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/food/liked`,
         { foodId: item._id },
         { headers: { Authorization: `Bearer ${token}` } }
       );
