@@ -31,11 +31,11 @@ async function registerUser(req, res) {
     }, process.env.JWT_SECRET)
 
     res.cookie('token', token, {
-  httpOnly: true,
-  secure: true,         // true on HTTPS (production)
-  sameSite: 'None',     // must be 'None' if frontend and backend are on different domains
-  maxAge: 24 * 60 * 60 * 1000 // 1 day
-});
+        httpOnly: true,
+        secure: true,         // true on HTTPS (production)
+        sameSite: 'None',     // must be 'None' if frontend and backend are on different domains
+        maxAge: 24 * 60 * 60 * 1000 // 1 day
+    });
 
 
     res.status(201).json({
@@ -133,11 +133,11 @@ async function registerFoodPartner(req, res) {
     }, process.env.JWT_SECRET)
 
     res.cookie('token', token, {
-  httpOnly: true,
-  secure: true,         // true on HTTPS (production)
-  sameSite: 'None',     // must be 'None' if frontend and backend are on different domains
-  maxAge: 24 * 60 * 60 * 1000 // 1 day
-});
+        httpOnly: true,
+        secure: true,         // true on HTTPS (production)
+        sameSite: 'None',     // must be 'None' if frontend and backend are on different domains
+        maxAge: 24 * 60 * 60 * 1000 // 1 day
+    });
 
 
     res.status(201).json({
@@ -183,11 +183,11 @@ async function loginFoodPartner(req, res) {
     }, process.env.JWT_SECRET)
 
     res.cookie('token', token, {
-  httpOnly: true,
-  secure: true,         // true on HTTPS (production)
-  sameSite: 'None',     // must be 'None' if frontend and backend are on different domains
-  maxAge: 24 * 60 * 60 * 1000 // 1 day
-});
+        httpOnly: true,
+        secure: true,         // true on HTTPS (production)
+        sameSite: 'None',     // must be 'None' if frontend and backend are on different domains
+        maxAge: 24 * 60 * 60 * 1000 // 1 day
+    });
 
 
     res.status(200).json({
