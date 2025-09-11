@@ -74,7 +74,6 @@ const FoodPartnerProfile = () => {
                     src={v.video}
                     muted
                     loop
-                    preload='metadata'
                     autoPlay
                     controls
                     
