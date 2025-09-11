@@ -129,9 +129,13 @@ function logoutFoodPartner(req, res) {
 }
 
 // -------------------- Profile --------------------
+function getTokenFromRequest(req) {
+  return req.cookies.token || req.headers.authorization?.split(" ")[1];
+}
+
 async function getMe(req, res) {
   try {
-    const token = req.cookies.token || req.headers.authorization?.split(" ")[1];
+    const token = getTokenFromRequest(req);
     if (!token) return res.status(401).json({ message: "Not authenticated" });
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
@@ -150,6 +154,7 @@ async function getMe(req, res) {
     res.status(401).json({ message: "Invalid or expired token" });
   }
 }
+
 
 const updateProfile = async (req, res) => {
   try {
