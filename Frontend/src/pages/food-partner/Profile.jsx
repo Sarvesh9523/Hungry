@@ -1,39 +1,50 @@
-import React, { useState, useEffect } from 'react'
-import '../../styles/profile.css'
-import { useParams, useNavigate } from 'react-router-dom'
-import axios from 'axios'
+import React, { useState, useEffect } from 'react';
+import '../../styles/profile.css';
+import { useParams, useNavigate } from 'react-router-dom';
+import axios from 'axios';
 
 const FoodPartnerProfile = () => {
-  const { id } = useParams()
-  const navigate = useNavigate()
+  const { id } = useParams();
+  const navigate = useNavigate();
 
-  const [profile, setProfile] = useState(null)
-  const [videos, setVideos] = useState([])
+  const [profile, setProfile] = useState(null);
+  const [videos, setVideos] = useState([]);
 
   // Fetch food partner profile
   useEffect(() => {
+    const token = localStorage.getItem("token"); // mobile-safe
+
     axios
-      .get(`${import.meta.env.VITE_BACKEND_URL}/api/food-partner/${id}`, { withCredentials: true })
+      .get(`${import.meta.env.VITE_BACKEND_URL}/api/food-partner/${id}`, {
+        headers: { Authorization: `Bearer ${token}` }, // send JWT from localStorage
+      })
       .then(response => {
-        setProfile(response.data.foodPartner)
-        setVideos(response.data.foodPartner.foodItems)
+        setProfile(response.data.foodPartner);
+        setVideos(response.data.foodPartner.foodItems);
       })
       .catch(err => {
-        console.error("Failed to fetch food partner profile", err)
-      })
-  }, [id])
+        console.error("Failed to fetch food partner profile", err);
+        alert("Session expired. Please login again.");
+        navigate("/food-partner/login");
+      });
+  }, [id, navigate]);
 
   // Logout handler (food partner only)
   const handleLogout = async () => {
     try {
       await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/auth/food-partner/logout`, {
-        withCredentials: true,
-      })
-      navigate("/")
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+      });
+
+      // Clear localStorage on logout
+      localStorage.removeItem("token");
+      localStorage.removeItem("foodPartner");
+
+      navigate("/");
     } catch (error) {
-      console.error("Logout failed", error)
+      console.error("Logout failed", error);
     }
-  }
+  };
 
   return (
     <main className="profile-page">
@@ -44,7 +55,6 @@ const FoodPartnerProfile = () => {
             src="https://images.unsplash.com/photo-1754653099086-3bddb9346d37?w=500&auto=format&fit=crop&q=60"
             alt="Food Partner Avatar"
           />
-
           <div className="profile-info">
             <h1 className="profile-pill profile-business">{profile?.name}</h1>
             <p className="profile-pill profile-address">{profile?.address}</p>
@@ -64,7 +74,7 @@ const FoodPartnerProfile = () => {
         </div>
 
         {/* Logout button */}
-        <button className="logout-btn" onClick={handleLogout} >
+        <button className="logout-btn" onClick={handleLogout}>
           Logout
         </button>
       </section>
@@ -80,12 +90,12 @@ const FoodPartnerProfile = () => {
               src={v.video}
               muted
               autoPlay
-            ></video>
+            />
           </div>
         ))}
       </section>
     </main>
-  )
-}
+  );
+};
 
-export default FoodPartnerProfile
+export default FoodPartnerProfile;

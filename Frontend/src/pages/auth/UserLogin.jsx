@@ -4,28 +4,34 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
 const UserLogin = () => {
-
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    try{
+    try {
       const email = e.target.email.value;
-    const password = e.target.password.value;
+      const password = e.target.password.value;
 
-    const response = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/auth/user/login`, {
-      email,
-      password
-    }, { withCredentials: true });
-    console.log(response.data);
+      const response = await axios.post(
+        `${import.meta.env.VITE_BACKEND_URL}/api/auth/user/login`,
+        { email, password },
+        { withCredentials: true } // still set for desktop cookies
+      );
 
-    navigate("/home"); // Redirect to home after login
-    }catch(err){
-      alert("Invalid Login Password")
-      console.log("Error", err)
+      console.log(response.data);
+
+      // Save token in localStorage for mobile / cross-domain usage
+      localStorage.setItem("token", response.data.token);
+
+      // Optionally save user info in localStorage
+      localStorage.setItem("user", JSON.stringify(response.data.user));
+
+      navigate("/home"); // Redirect after login
+    } catch (err) {
+      alert("Invalid Login Credentials");
+      console.error("Error", err);
     }
-
   };
 
   return (

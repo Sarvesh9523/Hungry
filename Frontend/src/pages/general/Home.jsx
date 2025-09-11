@@ -1,57 +1,75 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import '../../styles/reels.css'
-import ReelFeed from '../../components/ReelFeed'
+import '../../styles/reels.css';
+import ReelFeed from '../../components/ReelFeed';
 
 const Home = () => {
-    const [ videos, setVideos ] = useState([])
-    // Autoplay behavior is handled inside ReelFeed
+  const [videos, setVideos] = useState([]);
 
-    useEffect(() => {
-        axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/food`, { withCredentials: true })
-            .then(response => {
+  const token = localStorage.getItem("token"); // mobile-safe JWT
 
-                console.log(response.data);
+  // Fetch videos
+  useEffect(() => {
+    axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/food`, {
+      headers: { Authorization: `Bearer ${token}` }
+    })
+      .then(response => {
+        console.log(response.data);
+        setVideos(response.data.foodItems);
+      })
+      .catch(err => {
+        console.error("Failed to fetch videos", err);
+        alert("Session expired. Please login again.");
+        window.location.href = "/user/login"; // redirect if token invalid
+      });
+  }, [token]);
 
-                setVideos(response.data.foodItems)
-            })
-            .catch(() => { /* noop: optionally handle error */ })
-    }, [])
+  // Like a video
+  async function likeVideo(item) {
+    try {
+      const response = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/food/like`, 
+        { foodId: item._id }, 
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
 
-    // Using local refs within ReelFeed; keeping map here for dependency parity if needed
-
-    async function likeVideo(item) {
-
-        const response = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/food/like`, { foodId: item._id }, {withCredentials: true})
-
-        if(response.data.like){
-            console.log("Video liked");
-            setVideos((prev) => prev.map((v) => v._id === item._id ? { ...v, likeCount: v.likeCount + 1 } : v))
-        }else{
-            console.log("Video unliked");
-            setVideos((prev) => prev.map((v) => v._id === item._id ? { ...v, likeCount: v.likeCount - 1 } : v))
-        }
-        
+      if (response.data.like) {
+        console.log("Video liked");
+        setVideos(prev => prev.map(v => v._id === item._id ? { ...v, likeCount: v.likeCount + 1 } : v));
+      } else {
+        console.log("Video unliked");
+        setVideos(prev => prev.map(v => v._id === item._id ? { ...v, likeCount: v.likeCount - 1 } : v));
+      }
+    } catch (err) {
+      console.error("Like action failed", err);
     }
+  }
 
-    async function saveVideo(item) {
-        const response = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/food/save`, { foodId: item._id }, { withCredentials: true })
-        
-        if(response.data.save){
-            setVideos((prev) => prev.map((v) => v._id === item._id ? { ...v, savesCount: v.savesCount + 1 } : v))
-        }else{
-            setVideos((prev) => prev.map((v) => v._id === item._id ? { ...v, savesCount: v.savesCount - 1 } : v))
-        }
+  // Save a video
+  async function saveVideo(item) {
+    try {
+      const response = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/food/save`, 
+        { foodId: item._id }, 
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      if (response.data.save) {
+        setVideos(prev => prev.map(v => v._id === item._id ? { ...v, savesCount: v.savesCount + 1 } : v));
+      } else {
+        setVideos(prev => prev.map(v => v._id === item._id ? { ...v, savesCount: v.savesCount - 1 } : v));
+      }
+    } catch (err) {
+      console.error("Save action failed", err);
     }
+  }
 
-    return (
-        <ReelFeed
-            items={videos}
-            onLike={likeVideo}
-            onSave={saveVideo}
-            emptyMessage="No videos available."
-        />
-    )
-}
+  return (
+    <ReelFeed
+      items={videos}
+      onLike={likeVideo}
+      onSave={saveVideo}
+      emptyMessage="No videos available."
+    />
+  );
+};
 
-export default Home
+export default Home;

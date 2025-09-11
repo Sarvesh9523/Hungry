@@ -4,26 +4,34 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
 const FoodPartnerLogin = () => {
-
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const email = e.target.email.value;
-    const password = e.target.password.value;
+    try {
+      const email = e.target.email.value;
+      const password = e.target.password.value;
 
-    const response = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/auth/food-partner/login`, {
-      email,
-      password
-    }, { withCredentials: true });
+      const response = await axios.post(
+        `${import.meta.env.VITE_BACKEND_URL}/api/auth/food-partner/login`,
+        { email, password },
+        { withCredentials: true } // still for desktop cookies
+      );
 
-    const foodPartnerId = response.data.foodPartner._id
+      console.log("Login response:", response.data);
 
-    console.log(response.data);
+      // --- MOBILE SAFE --- store JWT in localStorage
+      localStorage.setItem("token", response.data.token);
+      localStorage.setItem("foodPartner", JSON.stringify(response.data.foodPartner));
 
-    navigate(`/food-partner/${foodPartnerId}`); // Redirect to create food page after login
-
+      // Redirect to dashboard
+      const foodPartnerId = response.data.foodPartner._id;
+      navigate(`/food-partner/${foodPartnerId}`);
+    } catch (err) {
+      alert("Invalid login credentials");
+      console.error("Login error:", err);
+    }
   };
 
   return (
@@ -36,11 +44,25 @@ const FoodPartnerLogin = () => {
         <form className="auth-form" onSubmit={handleSubmit} noValidate>
           <div className="field-group">
             <label htmlFor="email">Email</label>
-            <input id="email" name="email" type="email" placeholder="business@example.com" autoComplete="email" />
+            <input
+              id="email"
+              name="email"
+              type="email"
+              placeholder="business@example.com"
+              autoComplete="email"
+              required
+            />
           </div>
           <div className="field-group">
             <label htmlFor="password">Password</label>
-            <input id="password" name="password" type="password" placeholder="Password" autoComplete="current-password" />
+            <input
+              id="password"
+              name="password"
+              type="password"
+              placeholder="Password"
+              autoComplete="current-password"
+              required
+            />
           </div>
           <button className="auth-submit" type="submit">Sign In</button>
         </form>

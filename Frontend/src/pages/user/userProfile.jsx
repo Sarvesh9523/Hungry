@@ -29,46 +29,52 @@ const UserProfile = () => {
     const [isEditingNickname, setIsEditingNickname] = useState(false);
     const navigate = useNavigate();
 
+    const token = localStorage.getItem("token"); // mobile-safe token
+
     /* Fetch user profile */
     useEffect(() => {
-        axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/auth/me`, { withCredentials: true })
-            .then((res) => {
-                if (res.data.role === "user") {
-                    const profile = res.data.profile;
-                    setUser(profile);
-                    setFullName(profile.fullName || "");
-                    setEmail(profile.email || "");
-                    setNickname(profile.nickname || "");
-                    if (profile.avatar) {
-                        setSelectedAvatar(profile.avatar);
-                    }
-                }
-            })
-            .catch((err) => console.error("Failed to fetch user profile", err));
-    }, []);
+        if (!token) return navigate("/user/login");
+
+        axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/auth/me`, {
+            headers: { Authorization: `Bearer ${token}` }
+        })
+        .then((res) => {
+            if (res.data.role === "user") {
+                const profile = res.data.profile;
+                setUser(profile);
+                setFullName(profile.fullName || "");
+                setEmail(profile.email || "");
+                setNickname(profile.nickname || "");
+                if (profile.avatar) setSelectedAvatar(profile.avatar);
+            }
+        })
+        .catch((err) => {
+            console.error("Failed to fetch user profile", err);
+            localStorage.removeItem("token");
+            navigate("/user/login");
+        });
+    }, [token, navigate]);
 
     const handleLogout = async () => {
         try {
             await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/auth/user/logout`, {
-                withCredentials: true,
-            })
-            navigate("/")
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            localStorage.removeItem("token");
+            navigate("/");
         } catch (error) {
-            console.error("Logout failed", error)
+            console.error("Logout failed", error);
         }
     }
 
-    /* Save updated profile */
     const handleSaveProfile = async () => {
         try {
             await axios.put(`${import.meta.env.VITE_BACKEND_URL}/api/auth/profile`, {
                 nickname,
                 avatar: selectedAvatar,
             }, {
-                withCredentials: true
+                headers: { Authorization: `Bearer ${token}` }
             });
-
-
             console.log("Profile updated successfully");
         } catch (error) {
             console.error("Failed to update profile:", error);
