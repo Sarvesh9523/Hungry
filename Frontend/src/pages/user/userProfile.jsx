@@ -31,7 +31,7 @@ const UserProfile = () => {
 
     /* Fetch user profile */
     useEffect(() => {
-        axios.get("http://localhost:3000/api/auth/me", { withCredentials: true })
+        axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/auth/me`, { withCredentials: true })
             .then((res) => {
                 if (res.data.role === "user") {
                     const profile = res.data.profile;
@@ -49,7 +49,7 @@ const UserProfile = () => {
 
     const handleLogout = async () => {
         try {
-            await axios.get("http://localhost:3000/api/auth/user/logout", {
+            await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/auth/user/logout`, {
                 withCredentials: true,
             })
             navigate("/")
@@ -61,7 +61,7 @@ const UserProfile = () => {
     /* Save updated profile */
     const handleSaveProfile = async () => {
         try {
-            await axios.put("http://localhost:3000/api/auth/profile", {
+            await axios.put(`${import.meta.env.VITE_BACKEND_URL}/api/auth/profile`, {
                 nickname,
                 avatar: selectedAvatar,
             }, {

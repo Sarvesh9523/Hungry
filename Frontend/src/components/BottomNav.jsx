@@ -8,7 +8,7 @@ const BottomNav = () => {
   const [profileId, setProfileId] = useState(null)
 
   useEffect(() => {
-    axios.get("http://localhost:3000/api/auth/me", { withCredentials: true })
+    axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/auth/me`, { withCredentials: true })
       .then(res => {
         setRole(res.data.role)
         setProfileId(res.data.profile._id)

@@ -56,12 +56,13 @@ const CreateFood = () => {
         formData.append('description', description);
         formData.append("video", videoFile);
 
-        const response = await axios.post("http://localhost:3000/api/food", formData, {
+        const response = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/food`, formData, {
             withCredentials: true,
         })
+        const foodPartnerId = response.data.foodPartner._id
 
         console.log(response.data);
-        navigate("/"); // Redirect to home or another page after successful creation
+        navigate(`/food-partner/${foodPartnerId}`); // Redirect to home or another page after successful creation
         // Optionally reset
         // setName(''); setDescription(''); setVideoFile(null);
     };

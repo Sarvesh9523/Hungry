@@ -13,7 +13,7 @@ const FoodPartnerProfile = () => {
   // Fetch food partner profile
   useEffect(() => {
     axios
-      .get(`http://localhost:3000/api/food-partner/${id}`, { withCredentials: true })
+      .get(`${import.meta.env.VITE_BACKEND_URL}/api/food-partner/${id}`, { withCredentials: true })
       .then(response => {
         setProfile(response.data.foodPartner)
         setVideos(response.data.foodPartner.foodItems)
@@ -26,7 +26,7 @@ const FoodPartnerProfile = () => {
   // Logout handler (food partner only)
   const handleLogout = async () => {
     try {
-      await axios.get("http://localhost:3000/api/auth/food-partner/logout", {
+      await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/auth/food-partner/logout`, {
         withCredentials: true,
       })
       navigate("/")
