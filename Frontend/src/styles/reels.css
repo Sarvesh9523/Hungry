@@ -119,6 +119,7 @@
   background: #000;
   border-radius: 12px;
 }
+.reel-btn {margin-bottom: 20px ;}
 }
 
 /* Right-side vertical actions (like, bookmark, comments) */

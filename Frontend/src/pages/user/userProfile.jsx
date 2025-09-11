@@ -130,7 +130,7 @@ const UserProfile = () => {
 
           {/* Action Buttons */}
           <div className="profile-actions">
-            <button className="profile-button" onClick={() => navigate("/saved-reels")}>Saved Reel</button>
+            <button className="profile-button" onClick={() => navigate("/saved")}>Saved Reel</button>
             <button className="profile-button" onClick={() => navigate("/liked-reels")}>Liked Reel</button>
             <button className="logout-btn" onClick={handleLogout}>Logout</button>
           </div>
