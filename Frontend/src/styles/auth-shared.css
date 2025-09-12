@@ -122,3 +122,71 @@ button.auth-submit:focus-visible { outline: 2px solid var(--color-accent-hover);
 
 /* Smooth transitions for theme change */
 body, .auth-card, .field-group input { transition: background 200ms ease, color 200ms ease, border-color 200ms ease; }
+
+/* ================================
+   Styles scoped to ChooseRegister
+   ================================ */
+.choose-register-page .auth-container {
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  gap: var(--space-6);
+  max-width: 900px;
+  width: 100%;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+  overflow: hidden;
+}
+
+.choose-register-page .divider {
+  width: 1px;
+  background: var(--color-border);
+}
+
+.choose-register-page .side-card {
+  flex: 1;
+  padding: var(--space-6);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-5);
+  background: var(--color-surface);
+}
+
+.choose-register-page .side-card header {
+  text-align: center;
+}
+
+.choose-register-page .link-btn {
+  display: block;
+  width: 200px;
+  padding: 12px 16px;
+  text-align: center;
+  background: var(--color-surface-alt);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  color: var(--color-text);
+  font-weight: 500;
+  transition: background var(--transition-base), border-color var(--transition-base);
+}
+
+.choose-register-page .link-btn:hover {
+  background: var(--color-accent);
+  color: #fff;
+  border-color: var(--color-accent);
+}
+
+/* Responsive: Stack on mobile */
+@media (max-width: 640px) {
+  .choose-register-page .auth-container {
+    flex-direction: column;
+  }
+  .choose-register-page .divider {
+    height: 1px;
+    width: 100%;
+  }
+}
+

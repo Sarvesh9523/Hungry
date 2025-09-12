@@ -4,25 +4,35 @@ import '../../styles/auth-shared.css';
 
 const ChooseRegister = () => {
   return (
-    <div className="auth-page-wrapper">
-      <div className="auth-card" role="region" aria-labelledby="choose-register-title">
-        <header>
-          <h1 id="choose-register-title" className="auth-title">Register</h1>
-          <p className="auth-subtitle">Pick how you want to join the platform.</p>
-        </header>
-        <div style={{display:'flex', flexDirection:'column', gap:'16px', alignItems:'center'}}>
-          <Link to="/user/register" className="auth-submit" style={{textDecoration:'none'}}>
-            Register as normal user
-          </Link>
-          <Link to="/food-partner/register" className="auth-submit" style={{textDecoration:'none'}}>
-            Register as food partner
-          </Link>
+    <div className="auth-page-wrapper choose-register-page">
+      <div className="auth-container">
+        
+        {/* Login Section */}
+        <div className="auth-card side-card">
+          <header>
+            <h1 className="auth-title">LogIn</h1>
+            <p className="auth-subtitle">Already have an account</p>
+          </header>
+          <div className="auth-actions">
+            <Link to="/user/login" className="link-btn">User</Link>
+            <Link to="/food-partner/login" className="link-btn">Food Partner</Link>
+          </div>
         </div>
-        <div className="auth-alt-action" style={{marginTop:'4px', display:'flex', flexDirection:'column'}}>
-          Already have an account?
-          <Link to="/user/login">User Sign in</Link>
-          <Link to="/food-partner/login">Food Partner Sign in</Link>
+
+        <div className="divider" />
+
+        {/* Register Section */}
+        <div className="auth-card side-card">
+          <header>
+            <h1 className="auth-title">Register</h1>
+            <p className="auth-subtitle">Join to explore and enjoy</p>
+          </header>
+          <div className="auth-actions">
+            <Link to="/user/register" className="link-btn">User</Link>
+            <Link to="/food-partner/register" className="link-btn">Food Partner</Link>
+          </div>
         </div>
+
       </div>
     </div>
   );
