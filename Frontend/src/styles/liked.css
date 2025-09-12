@@ -2,8 +2,10 @@
 
 /* ---------- Liked Page Wrapper ---------- */
 .liked-container {
-  text-align: center;
   padding: var(--space-4);
+  max-width: 1200px;
+  margin: 0 auto;
+  text-align: center;
 }
 
 /* ---------- Header Section ---------- */
@@ -21,33 +23,52 @@
 .liked-quote {
   font-size: 14px;
   color: var(--color-text-secondary);
-  margin-bottom: var(--space-4);
+  margin-bottom: var(--space-3);
 }
 
-/* ---------- Reel Scroll Container ---------- */
-.reel-scroll-container {
-  height: 100vh;
-  overflow-y: scroll;
-  scroll-snap-type: y mandatory;
-  -webkit-overflow-scrolling: touch;
-  background: black;
+.liked-stats {
+  font-size: 16px;
+  color: var(--color-text);
+  font-weight: 500;
+  background: var(--color-surface-alt);
+  display: inline-block;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
 }
 
-.reel-scroll-item {
-  height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  scroll-snap-align: start;
+/* ---------- Grid Layout ---------- */
+.liked-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: var(--space-4);
 }
 
-.reel-scroll-item video {
+.liked-grid-item {
+  position: relative;
+  cursor: pointer;
+  overflow: hidden;
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  aspect-ratio: 9 / 16;
+  box-shadow: var(--shadow-sm);
+  transition: transform var(--transition-base), box-shadow var(--transition-base);
+}
+
+.liked-grid-item:hover {
+  transform: scale(1.03);
+  box-shadow: var(--shadow-md);
+}
+
+.liked-grid-item video {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  display: block;
+  border-radius: var(--radius-md);
 }
 
-/* ---------- Full-screen Reel (if needed) ---------- */
+/* ---------- Full-screen Reel View ---------- */
 .reel-fullscreen {
   position: fixed;
   inset: 0;
@@ -60,9 +81,45 @@
   animation: fadeIn 0.3s ease-in-out;
 }
 
+/* Video fills entire screen with no border like Instagram/TikTok */
+.reel-video {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 100%;
+  height: auto;
+  max-width: 420px; /* Reel width on desktop */
+  aspect-ratio: 9 / 16;
+  object-fit: cover;
+  object-position: center;
+  background: #000;
+  border-radius: 12px;
+}
+
 @keyframes fadeIn {
   from { opacity: 0; }
   to { opacity: 1; }
+}
+
+/* ---------- Close Button ---------- */
+.close-btn {
+  position: absolute;
+  top: var(--space-4);
+  right: var(--space-4);
+  background: rgba(0, 0, 0, 0.6);
+  border: none;
+  color: #fff;
+  font-size: 22px;
+  padding: var(--space-2) var(--space-3);
+  cursor: pointer;
+  border-radius: var(--radius-md);
+  transition: background var(--transition-base);
+  z-index: 10000;
+}
+
+.close-btn:hover {
+  background: rgba(0, 0, 0, 0.8);
 }
 
 /* ---------- Empty State ---------- */
@@ -75,14 +132,37 @@
 
 /* ---------- Responsive Layout ---------- */
 @media (max-width: 480px) {
-  .liked-title { font-size: 20px; }
-  .liked-quote { font-size: 12px; }
+  .liked-grid {
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    gap: var(--space-2);
+  }
+
+  .close-btn {
+    top: var(--space-3);
+    right: var(--space-3);
+    font-size: 18px;
+    padding: var(--space-1) var(--space-2);
+  }
+
+  .liked-title {
+    font-size: 20px;
+  }
+
+  .liked-stats {
+    font-size: 14px;
+  }
 }
 
 @media (min-width: 481px) and (max-width: 768px) {
-  .liked-title { font-size: 22px; }
+  .liked-grid {
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  }
 }
 
 @media (min-width: 1024px) {
-  .liked-title { font-size: 24px; }
+  .liked-grid {
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    max-width: 1100px;
+    margin: 0 auto;
+  }
 }
