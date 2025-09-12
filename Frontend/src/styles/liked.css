@@ -213,7 +213,7 @@
 @media (min-width: 1024px) {
     .reel-fullscreen-wrapper .reels-page {
         max-width: 420px; /* Slightly adjusted for a better fit */
-        height: auto;
+        height: 100vh;
         max-height: 800px;
         border-radius: var(--radius-md);
         overflow: hidden;
