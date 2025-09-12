@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import "../../styles/liked.css"; // Your existing styles should work
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import ReelFeed from './ReelFeed'; // **Import ReelFeed**
+import ReelFeed from '../../components/ReelFeed';
 
 const Liked = () => {
   const [likedVideos, setLikedVideos] = useState([]);
