@@ -7,7 +7,7 @@ import { Link } from 'react-router-dom'
 // - onLike: (item) => void | Promise<void>
 // - onSave: (item) => void | Promise<void>
 // - emptyMessage: string
-const ReelFeed = ({ items = [], onLike, onSave, emptyMessage = 'No videos yet.' }) => {
+const ReelFeed = ({ items = [], onLike, onSave, emptyMessage = 'No videos yet.', initialActiveId }) => {
   const videoRefs = useRef(new Map())
 
   useEffect(() => {
@@ -34,6 +34,17 @@ const ReelFeed = ({ items = [], onLike, onSave, emptyMessage = 'No videos yet.' 
     if (!el) { videoRefs.current.delete(id); return }
     videoRefs.current.set(id, el)
   }
+  useEffect(() => {
+    if (initialActiveId && videoRefs.current.has(initialActiveId)) {
+        const videoElement = videoRefs.current.get(initialActiveId);
+        if (videoElement) {
+            // Use a timeout to ensure the DOM is ready for scrolling
+            setTimeout(() => {
+                videoElement.scrollIntoView({ behavior: 'auto', block: 'start' });
+            }, 0);
+        }
+    }
+  }, [initialActiveId, items]);
 
   return (
     <div className="reels-page">

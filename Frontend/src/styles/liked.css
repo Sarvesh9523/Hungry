@@ -1,157 +1,200 @@
-/* Liked.css
-  This file styles the "Your Liked Reels" page, including the header, 
-  the video thumbnail grid, and the full-screen reel viewer.
-  It uses the CSS variables defined in your theme.css file.
-*/
-
-/* Main Container for the Liked Page */
 .liked-container {
-  width: 100%;
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: var(--space-8) var(--space-4);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--space-8);
-  box-sizing: border-box;
-}
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 32px 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 32px;
+    box-sizing: border-box;
+    background-color: #0f172a; /* Dark background */
+    color: #f1f5f9; /* Light text */
+  }
 
-/* Header Section */
-.liked-header {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  gap: var(--space-2);
-}
+  .liked-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 8px;
+  }
 
-.liked-title {
-  font-size: 2.25rem; /* 36px */
-  font-weight: 700;
-  color: var(--color-text);
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-}
+  .liked-title {
+    font-size: 2.25rem;
+    font-weight: 700;
+  }
 
-/* Adds the heart icon before the title */
-.liked-title::before {
-  content: '❤️';
-  font-size: 1.875rem; /* 30px */
-}
+  .liked-quote {
+    font-size: 1rem;
+    color: #94a3b8; /* Secondary text */
+  }
 
-.liked-quote {
-  font-size: 1rem;
-  color: var(--color-text-secondary);
-  max-width: 30ch;
-}
+  .liked-stats {
+    margin-top: 12px;
+    padding: 8px 16px;
+    background-color: #1e293b; /* Surface color */
+    border: 1px solid #334155; /* Border color */
+    border-radius: 9999px;
+    font-size: 0.875rem;
+    color: #94a3b8;
+  }
 
-.liked-stats {
-  margin-top: var(--space-3);
-  padding: var(--space-2) var(--space-4);
-  background-color: var(--color-surface-alt);
-  border: 1px solid var(--color-border);
-  border-radius: 9999px; /* Pill shape */
-  font-size: 0.875rem;
-  color: var(--color-text-secondary);
-  box-shadow: var(--shadow-sm);
-}
+  .liked-stats strong {
+    color: #f1f5f9;
+    font-weight: 600;
+  }
 
-.liked-stats strong {
-  color: var(--color-text);
-  font-weight: 600;
-}
-
-/* Responsive Video Grid */
-.liked-grid {
-  width: 100%;
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: var(--space-6);
-}
-
-@media (min-width: 768px) {
   .liked-grid {
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 24px;
   }
-}
 
-.liked-grid-item {
-  position: relative;
-  aspect-ratio: 9 / 16;
-  border-radius: var(--radius-md);
-  overflow: hidden;
-  cursor: pointer;
-  box-shadow: var(--shadow-md);
-  transition: transform var(--transition-base), box-shadow var(--transition-base);
-  background-color: var(--color-surface-alt);
-}
-
-.liked-grid-item:hover,
-.liked-grid-item:focus-visible {
-  transform: translateY(-4px) scale(1.03);
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.15), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
-}
-
-.liked-grid-video {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transition: transform var(--transition-base);
-}
-
-.empty-message {
-  grid-column: 1 / -1;
-  text-align: center;
-  color: var(--color-text-secondary);
-  padding: var(--space-8);
-  background-color: var(--color-surface);
-  border-radius: var(--radius-md);
-}
-
-
-
-
-.close-btn {
-  position: absolute;
-  top: var(--space-4);
-  right: var(--space-4);
-  z-index: 60;
-  background-color: var(--color-surface-alt);
-  color: var(--color-text);
-  border: 1px solid var(--color-border);
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  font-size: 1.5rem;
-  line-height: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: background-color var(--transition-base), transform var(--transition-base), border-color var(--transition-base);
-}
-
-.close-btn:hover,
-.close-btn:focus-visible {
-  background-color: var(--color-surface);
-  border-color: var(--color-accent);
-  transform: scale(1.1);
-}
-
-/* --- Responsive Adjustments --- */
-@media (max-width: 768px) {
-  .liked-container {
-    padding: var(--space-6) var(--space-4);
+  .liked-grid-item {
+    position: relative;
+    aspect-ratio: 9 / 16;
+    border-radius: 8px;
+    overflow: hidden;
+    cursor: pointer;
+    background-color: #1e293b;
   }
-}
 
-@media (max-width: 480px) {
-  .liked-grid {
-    grid-template-columns: repeat(2, 1fr);
+  .liked-grid-video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
   }
-}
+  
+  .empty-message {
+    grid-column: 1 / -1;
+    text-align: center;
+    color: #94a3b8;
+    padding: 32px;
+  }
 
+  /* From reels.css */
+  .reels-page {
+    height: 100dvh;
+    background: #0f172a;
+    overflow: hidden;
+  }
 
+  .reels-feed {
+    height: 100%;
+    width: 100%;
+    overflow-y: auto;
+    scroll-snap-type: y mandatory;
+    overscroll-behavior-y: contain;
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+    scrollbar-width: none;
+  }
 
+  .reels-feed::-webkit-scrollbar { display: none; }
+
+  .reel {
+    position: relative;
+    height: 100dvh;
+    width: 100%;
+    scroll-snap-align: start;
+    background: #000;
+  }
+
+  .reel-video {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: contain; /* Changed to contain for better fit */
+    object-position: center;
+  }
+
+  .reel-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    pointer-events: none;
+    background: linear-gradient(to top, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0) 50%);
+  }
+  
+  .reel-content {
+    position: relative;
+    width: 100%;
+    padding: 24px;
+    padding-bottom: 80px; /* Space for nav bar */
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    pointer-events: auto;
+  }
+
+  .reel-description {
+    color: #fff;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.5);
+  }
+
+  .reel-btn {
+    align-self: flex-start;
+    background: #3b82f6; /* Accent color */
+    color: #fff;
+    border-radius: 999px;
+    padding: 10px 16px;
+    font-weight: 700;
+    text-decoration: none;
+  }
+
+  .reel-actions {
+    position: absolute;
+    right: 10px;
+    bottom: 90px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    pointer-events: auto;
+  }
+
+  .reel-action-group {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    color: #fff;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.5);
+  }
+
+  .reel-action {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(4px);
+    color: #fff;
+    border: none;
+    cursor: pointer;
+  }
+  
+  .reel-action__count {
+    font-size: 12px;
+  }
+
+  .empty-state {
+    position: absolute; inset: 0; display: grid; place-items: center;
+  }
+
+  /* Desktop Tweaks */
+  @media (min-width: 768px) {
+    .reel-video {
+      object-fit: contain;
+      width: auto;
+      height: 100%;
+      max-width: 450px; /* Typical reel width */
+      left: 50%;
+      transform: translateX(-50%);
+    }
+  }
