@@ -322,17 +322,17 @@
     max-width: 600px;
     margin: 0 auto;
   }
-  .reel-fullscreen-wrapper .reel-actions{
+  .reel-fullscreen-wrapper .reel-actions {
     /*
-      This calculation correctly positions the buttons inside the video on desktop.
-      - 'right: 50%' starts from the center of the screen.
-      - '- 200px' (half the video width, minus a small gap) moves the buttons
-        to the right, placing them near the inner edge of the video container.
+      This calculation correctly positions the buttons relative to the video.
+      - 'left: 50%' starts from the center of the screen.
+      - '+ 210px' moves it to the video's right edge (half of 420px width).
+      - '+ 16px' adds a comfortable gap between the video and the buttons.
     */
-    right: calc(50% - 200px);
-    bottom: 96px; /* Keep the same vertical position as mobile */
-    left: auto;   /* Override previous complex 'left' styles */
-    transform: none; /* Override previous transform */
+    left: calc(50% + 210px + 16px);
+    right: auto; /* Override mobile 'right' style */
+    bottom: 50%; /* Center vertically */
+    transform: translateY(50%); /* Adjust for vertical centering */
   }
 }
 
