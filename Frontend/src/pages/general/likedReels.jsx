@@ -36,7 +36,7 @@ const Liked = () => {
       {activeIndex === null && (
         <>
           <header className="liked-header">
-            <h1 className="liked-title">❤️ Your Liked Reels</h1>
+            <h1 className="liked-title">Your Liked Reels</h1>
             <p className="liked-quote">“Collect memories, not just likes.”</p>
             <div className="liked-stats">
               Total Liked Videos: <strong>{likedVideos.length}</strong>
