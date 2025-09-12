@@ -1,168 +1,219 @@
-@import "./theme.css";
+/* Liked.css
+  This file styles the "Your Liked Reels" page, including the header, 
+  the video thumbnail grid, and the full-screen reel viewer.
+  It uses the CSS variables defined in your theme.css file.
+*/
 
-/* ---------- Liked Page Wrapper ---------- */
+/* Main Container for the Liked Page */
 .liked-container {
-  padding: var(--space-4);
+  width: 100%;
   max-width: 1200px;
   margin: 0 auto;
-  text-align: center;
+  padding: var(--space-8) var(--space-4);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-8);
+  box-sizing: border-box;
 }
 
-/* ---------- Header Section ---------- */
+/* Header Section */
 .liked-header {
-  margin-bottom: var(--space-6);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: var(--space-2);
 }
 
 .liked-title {
-  font-size: 24px;
-  font-weight: bold;
+  font-size: 2.25rem; /* 36px */
+  font-weight: 700;
   color: var(--color-text);
-  margin-bottom: var(--space-2);
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+/* Adds the heart icon before the title */
+.liked-title::before {
+  content: '❤️';
+  font-size: 1.875rem; /* 30px */
 }
 
 .liked-quote {
-  font-size: 14px;
+  font-size: 1rem;
   color: var(--color-text-secondary);
-  margin-bottom: var(--space-3);
+  max-width: 30ch;
 }
 
 .liked-stats {
-  font-size: 16px;
-  color: var(--color-text);
-  font-weight: 500;
-  background: var(--color-surface-alt);
-  display: inline-block;
-  padding: var(--space-2) var(--space-3);
-  border-radius: var(--radius-md);
+  margin-top: var(--space-3);
+  padding: var(--space-2) var(--space-4);
+  background-color: var(--color-surface-alt);
+  border: 1px solid var(--color-border);
+  border-radius: 9999px; /* Pill shape */
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
   box-shadow: var(--shadow-sm);
 }
 
-/* ---------- Grid Layout ---------- */
+.liked-stats strong {
+  color: var(--color-text);
+  font-weight: 600;
+}
+
+/* Responsive Video Grid */
 .liked-grid {
+  width: 100%;
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-  gap: var(--space-4);
+  /* Creates a responsive grid that shows as many columns as fit */
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: var(--space-6);
+}
+
+@media (min-width: 768px) {
+  .liked-grid {
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  }
 }
 
 .liked-grid-item {
   position: relative;
-  cursor: pointer;
-  overflow: hidden;
+  aspect-ratio: 9 / 16; /* Portrait aspect ratio for reels */
   border-radius: var(--radius-md);
-  background: var(--color-surface);
-  aspect-ratio: 9 / 16;
-  box-shadow: var(--shadow-sm);
-  transition: transform var(--transition-base), box-shadow var(--transition-base);
-}
-
-.liked-grid-item:hover {
-  transform: scale(1.03);
+  overflow: hidden;
+  cursor: pointer;
   box-shadow: var(--shadow-md);
+  transition: transform var(--transition-base), box-shadow var(--transition-base);
+  background-color: var(--color-surface-alt);
 }
 
-.liked-grid-item video {
+.liked-grid-item:hover,
+.liked-grid-item:focus-visible {
+  transform: translateY(-4px) scale(1.03);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.15), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+}
+
+.liked-grid-video {
   width: 100%;
   height: 100%;
-  object-fit: cover;
-  display: block;
+  object-fit: cover; /* Ensures video covers the container without distortion */
+  transition: transform var(--transition-base);
+}
+
+.empty-message {
+  grid-column: 1 / -1; /* Span all columns */
+  text-align: center;
+  color: var(--color-text-secondary);
+  padding: var(--space-8);
+  background-color: var(--color-surface);
   border-radius: var(--radius-md);
 }
 
-/* ---------- Full-screen Reel View ---------- */
-.reel-fullscreen {
+
+/* Full-screen Reel Viewer Styles */
+.reel-fullscreen-wrapper {
   position: fixed;
-  inset: 0;
-  background: black;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  /* Use the theme's background color for a consistent look */
+  background-color: var(--color-bg);
+  z-index: 50;
   display: flex;
-  align-items: center;
   justify-content: center;
-  z-index: 9999;
-  overflow: hidden;
-  animation: fadeIn 0.3s ease-in-out;
+  align-items: center;
 }
 
-/* Video fills entire screen with no border like Instagram/TikTok */
-.reel-video {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
+/* Ensure the ReelFeed component fits correctly inside the wrapper */
+.reel-fullscreen-wrapper .reels-page {
+  height: 100%;
   width: 100%;
-  height: auto;
-  max-width: 420px; /* Reel width on desktop */
-  aspect-ratio: 9 / 16;
-  object-fit: cover;
-  object-position: center;
-  background: #000;
-  border-radius: 12px;
+  max-width: 450px; /* Common width for mobile reel view */
 }
 
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-/* ---------- Close Button ---------- */
 .close-btn {
   position: absolute;
   top: var(--space-4);
   right: var(--space-4);
-  background: rgba(0, 0, 0, 0.6);
-  border: none;
-  color: #fff;
-  font-size: 22px;
-  padding: var(--space-2) var(--space-3);
+  z-index: 60; /* Above the reel feed */
+  background-color: var(--color-surface-alt);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  font-size: 1.5rem;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
-  border-radius: var(--radius-md);
-  transition: background var(--transition-base);
-  z-index: 10000;
+  transition: background-color var(--transition-base), transform var(--transition-base), border-color var(--transition-base);
 }
 
-.close-btn:hover {
-  background: rgba(0, 0, 0, 0.8);
+.close-btn:hover,
+.close-btn:focus-visible {
+  background-color: var(--color-surface);
+  border-color: var(--color-accent);
+  transform: scale(1.1);
 }
 
-/* ---------- Empty State ---------- */
-.empty-message {
-  text-align: center;
-  padding: var(--space-8);
-  color: var(--color-text-secondary);
-  font-size: 16px;
-}
+/* --- Responsive Adjustments --- */
 
-/* ---------- Responsive Layout ---------- */
-@media (max-width: 480px) {
-  .liked-grid {
-    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-    gap: var(--space-2);
-  }
-
-  .close-btn {
-    top: var(--space-3);
-    right: var(--space-3);
-    font-size: 18px;
-    padding: var(--space-1) var(--space-2);
+/* For tablets and smaller devices */
+@media (max-width: 768px) {
+  .liked-container {
+    /* Reduce padding and gap on smaller screens */
+    padding: var(--space-6) var(--space-4); /* 24px 16px */
+    gap: var(--space-6);
   }
 
   .liked-title {
-    font-size: 20px;
+    /* Reduce title font size for a better fit */
+    font-size: 1.875rem; /* 30px */
   }
 
-  .liked-stats {
-    font-size: 14px;
+  .liked-title::before {
+    font-size: 1.5rem; /* 24px */
   }
 }
 
-@media (min-width: 481px) and (max-width: 768px) {
+
+/* For mobile phones */
+@media (max-width: 480px) {
   .liked-grid {
-    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    /* Use 2 columns for most phones and reduce gap */
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-4); /* 16px */
+  }
+
+  .reel-fullscreen-wrapper .reels-page {
+    /* Allow the reel to take full width on mobile */
+    max-width: 100%;
+  }
+
+  .close-btn {
+    /* Move the button slightly for easier access on small screens */
+    top: var(--space-3);
+    right: var(--space-3);
   }
 }
 
+/* Enhance viewer on larger screens for a better desktop experience */
 @media (min-width: 1024px) {
-  .liked-grid {
-    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-    max-width: 1100px;
-    margin: 0 auto;
-  }
+    .reel-fullscreen-wrapper .reels-page {
+        max-width: 480px; /* A bit larger for desktops */
+        border-radius: var(--radius-md);
+        overflow: hidden;
+        /* Add a subtle border on large screens for a contained look */
+        border: 1px solid var(--color-border);
+        box-shadow: var(--shadow-md);
+        /* Adjust height to not touch the very top/bottom */
+        height: 90vh;
+        max-height: 860px;
+    }
 }
+
