@@ -68,7 +68,7 @@ const Liked = () => {
 
       {/* **MODIFIED**: Full-screen Reel View now uses the ReelFeed component */}
       {activeIndex !== null && (
-        <div className="reel-fullscreen-wrapper">
+        <div>
           <button className="close-btn" onClick={() => setActiveIndex(null)}>
             ✕
           </button>
