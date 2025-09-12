@@ -56,6 +56,7 @@ const Liked = () => {
                     className="liked-grid-video"
                     src={video.video}
                     muted
+                    autoPlay
                     style={{ objectFit: "cover", width: "100%", height: "100%" }}
                   />
                 </div>
