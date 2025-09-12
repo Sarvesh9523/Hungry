@@ -222,9 +222,9 @@ body, .auth-card, .field-group input { transition: background 200ms ease, color 
 }
 
 .choose-register-page .link-btn:hover {
-  background: var(--color-accent);
   color: #fff;
   border-color: var(--color-accent);
+  box-shadow: var(--shadow-lg);
 }
 
 /* =======================
