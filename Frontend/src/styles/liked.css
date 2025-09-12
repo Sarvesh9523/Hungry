@@ -117,22 +117,34 @@
   position: fixed;
   top: 0;
   left: 0;
-  width: 100vw;
-  height: 100vh;
-  /* Use the theme's background color for a consistent look */
+  width: 100%;
+  height: 100%;
+  /* Use dvh for better mobile fitting, with vh as a fallback */
+  height: 100dvh;
   background-color: var(--color-bg);
   z-index: 50;
   display: flex;
   justify-content: center;
   align-items: center;
+  /* Prevent the main page from scrolling when the overlay is open */
+  overflow: hidden; 
 }
 
-/* Ensure the ReelFeed component fits correctly inside the wrapper */
 .reel-fullscreen-wrapper .reels-page {
   height: 100%;
   width: 100%;
   max-width: 450px; /* Common width for mobile reel view */
 }
+
+/* Hide the scrollbar within the reel feed */
+.reel-fullscreen-wrapper .reels-feed {
+  scrollbar-width: none; /* For Firefox */
+}
+
+.reel-fullscreen-wrapper .reels-feed::-webkit-scrollbar {
+  display: none; /* For Chrome, Safari, and Opera */
+}
+
 
 .close-btn {
   position: absolute;
@@ -166,13 +178,11 @@
 /* For tablets and smaller devices */
 @media (max-width: 768px) {
   .liked-container {
-    /* Reduce padding and gap on smaller screens */
-    padding: var(--space-6) var(--space-4); /* 24px 16px */
+    padding: var(--space-6) var(--space-4);
     gap: var(--space-6);
   }
 
   .liked-title {
-    /* Reduce title font size for a better fit */
     font-size: 1.875rem; /* 30px */
   }
 
@@ -185,18 +195,15 @@
 /* For mobile phones */
 @media (max-width: 480px) {
   .liked-grid {
-    /* Use 2 columns for most phones and reduce gap */
     grid-template-columns: repeat(2, 1fr);
     gap: var(--space-4); /* 16px */
   }
 
   .reel-fullscreen-wrapper .reels-page {
-    /* Allow the reel to take full width on mobile */
     max-width: 100%;
   }
 
   .close-btn {
-    /* Move the button slightly for easier access on small screens */
     top: var(--space-3);
     right: var(--space-3);
   }
@@ -205,15 +212,13 @@
 /* Enhance viewer on larger screens for a better desktop experience */
 @media (min-width: 1024px) {
     .reel-fullscreen-wrapper .reels-page {
-        max-width: 480px; /* A bit larger for desktops */
+        max-width: 420px; /* Slightly adjusted for a better fit */
+        height: 95vh;
+        max-height: 800px;
         border-radius: var(--radius-md);
         overflow: hidden;
-        /* Add a subtle border on large screens for a contained look */
         border: 1px solid var(--color-border);
         box-shadow: var(--shadow-md);
-        /* Adjust height to not touch the very top/bottom */
-        height: 90vh;
-        max-height: 860px;
     }
 }
 
