@@ -1,135 +1,14 @@
-/* Liked.css
-  This file styles the "Your Liked Reels" page, including the header, 
-  the video thumbnail grid, and the full-screen reel viewer.
-  It uses the CSS variables defined in your theme.css file.
-*/
+@import './theme.css';
 
-/* Main Container for the Liked Page */
-.liked-container {
-  width: 100%;
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: var(--space-8) var(--space-4);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--space-8);
-  box-sizing: border-box;
-}
-
-/* Header Section */
-.liked-header {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  gap: var(--space-2);
-}
-
-.liked-title {
-  font-size: 2.25rem; /* 36px */
-  font-weight: 700;
-  color: var(--color-text);
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-}
-
-/* Adds the heart icon before the title */
-.liked-title::before {
-  content: '❤️';
-  font-size: 1.875rem; /* 30px */
-}
-
-.liked-quote {
-  font-size: 1rem;
-  color: var(--color-text-secondary);
-  max-width: 30ch;
-}
-
-.liked-stats {
-  margin-top: var(--space-3);
-  padding: var(--space-2) var(--space-4);
-  background-color: var(--color-surface-alt);
-  border: 1px solid var(--color-border);
-  border-radius: 9999px; /* Pill shape */
-  font-size: 0.875rem;
-  color: var(--color-text-secondary);
-  box-shadow: var(--shadow-sm);
-}
-
-.liked-stats strong {
-  color: var(--color-text);
-  font-weight: 600;
-}
-
-/* Responsive Video Grid */
-.liked-grid {
-  width: 100%;
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: var(--space-6);
-}
-
-@media (min-width: 768px) {
-  .liked-grid {
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  }
-}
-
-.liked-grid-item {
-  position: relative;
-  aspect-ratio: 9 / 16;
-  border-radius: var(--radius-md);
-  overflow: hidden;
-  cursor: pointer;
-  box-shadow: var(--shadow-md);
-  transition: transform var(--transition-base), box-shadow var(--transition-base);
-  background-color: var(--color-surface-alt);
-}
-
-.liked-grid-item:hover,
-.liked-grid-item:focus-visible {
-  transform: translateY(-4px) scale(1.03);
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.15), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
-}
-
-.liked-grid-video {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transition: transform var(--transition-base);
-}
-
-.empty-message {
-  grid-column: 1 / -1;
-  text-align: center;
-  color: var(--color-text-secondary);
-  padding: var(--space-8);
-  background-color: var(--color-surface);
-  border-radius: var(--radius-md);
-}
-
-
-/* --- Full-screen Reel Viewer Styles (with Snap Scrolling) --- */
-.reel-fullscreen-wrapper {
-  position: fixed;
-  inset: 0;
-  height: 100vh;
+/* Page container ensures full viewport and background */
+.reels-page {
   height: 100dvh;
-  background-color: var(--color-bg);
-  z-index: 50;
-  overflow: hidden;
-}
-
-.reel-fullscreen-wrapper .reels-page {
-  height: 100%;
   background: var(--color-bg);
-  overflow: hidden;
+  overflow: hidden; /* parent hides overscroll glow on iOS */
 }
 
 /* Vertical feed with snap scrolling */
-.reel-fullscreen-wrapper .reels-feed {
+.reels-feed {
   height: 100%;
   width: 100%;
   overflow-y: auto;
@@ -137,104 +16,124 @@
   overscroll-behavior-y: contain;
   -webkit-overflow-scrolling: touch;
   scroll-behavior: smooth;
-  scrollbar-width: none; /* Hide scrollbar */
 }
 
-.reel-fullscreen-wrapper .reels-feed::-webkit-scrollbar {
-  display: none; /* Hide scrollbar */
-}
-
-.reel-fullscreen-wrapper .reel {
+/* Each reel takes full viewport */
+.reel {
   position: relative;
-  height: 100vh;
   height: 100dvh;
   width: 100%;
   scroll-snap-align: start;
-  background: #000;
+  background: #000; /* fallback while video loads */
 }
 
-.reel-fullscreen-wrapper .reel-video {
+.reel-video {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: cover; /* cover entire screen */
   object-position: center;
   background: #000;
 }
 
-.reel-fullscreen-wrapper .reel-overlay {
+/* Overlay: content sits on top of video */
+.reel-overlay {
   position: absolute;
   inset: 0;
   display: flex;
-  align-items: flex-end;
-  pointer-events: none;
+  align-items: flex-end; /* content near bottom */
+  pointer-events: none; /* allow click-through except controls */
 }
 
-.reel-fullscreen-wrapper .reel-overlay-gradient {
+/* Subtle top-to-bottom gradient so text is readable on any video */
+.reel-overlay-gradient {
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, rgba(0,0,0,0.25) 0%, rgba(0,0,0,0.05) 30%, rgba(0,0,0,0.35) 65%, rgba(0,0,0,0.65) 100%);
+  background: linear-gradient(180deg,
+    rgba(0,0,0,0.25) 0%,
+    rgba(0,0,0,0.05) 30%,
+    rgba(0,0,0,0.35) 65%,
+    rgba(0,0,0,0.65) 100%
+  );
 }
 
-.reel-fullscreen-wrapper .reel-content {
+.reel-content {
   position: relative;
   width: 100%;
   padding: var(--space-6);
-  padding-bottom: calc(env(safe-area-inset-bottom, 0) + 72px);
+  padding-bottom: calc(env(safe-area-inset-bottom, 0) + 72px); /* make space for bottom nav */
   display: flex;
   flex-direction: column;
   padding-right: 4.5rem;
   gap: var(--space-4);
-  pointer-events: auto;
+  pointer-events: auto; /* enable button click */
 }
 
-.reel-fullscreen-wrapper .reel-description {
+/* Truncated to two lines */
+.reel-description {
   color: #fff;
   text-shadow: 0 1px 2px rgba(0,0,0,.4);
   font-size: 1rem;
   line-height: 1.3;
   display: -webkit-box;
+  line-clamp: 2;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
   max-width: 90ch;
 }
 
-.reel-fullscreen-wrapper .reel-btn {
+.reel-btn {
   align-self: flex-start;
   background: var(--color-accent);
   color: #fff;
   border-radius: 999px;
   padding: 10px 16px;
   font-weight: 700;
+  letter-spacing: .3px;
   text-decoration: none;
   box-shadow: var(--shadow-md);
-  transition: transform var(--transition-base), background var(--transition-base);
+  transition: transform var(--transition-base), background var(--transition-base), box-shadow var(--transition-base);
 }
 
-.reel-fullscreen-wrapper .reel-btn:hover { background: var(--color-accent-hover); }
+.reel-btn:hover { background: var(--color-accent-hover); }
+.reel-btn:active { transform: translateY(1px); }
+.reel-btn:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
 
-/* Right-side vertical actions */
-.reel-fullscreen-wrapper .reel-actions {
+/* Desktop tweaks */
+@media (min-width: 768px) {
+  .reel-content { padding: 36px; }
+  .reel-description { font-size: 1.05rem; max-width: 70ch; }
+  .reel-video {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 100%;
+  height: auto;
+  max-width: 420px; /* Reel width on desktop */
+  aspect-ratio: 9 / 16;
+  object-fit: cover;
+  object-position: center;
+  background: #000;
+  border-radius: 12px;
+}
+.reel-btn {margin-bottom: 20px ;}
+}
+
+/* Right-side vertical actions (like, bookmark, comments) */
+.reel-actions {
   position: absolute;
   right: 10px;
-  bottom: 96px;
+  bottom: 96px; /* above bottom CTA and nav */
   display: flex;
   flex-direction: column;
   gap: 14px;
   pointer-events: auto;
 }
 
-.reel-fullscreen-wrapper .reel-action-group {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  color: #fff;
-}
-
-.reel-fullscreen-wrapper .reel-action {
+.reel-action {
   width: 48px;
   height: 48px;
   border-radius: 999px;
@@ -245,95 +144,24 @@
   color: #fff;
   border: 1px solid rgba(255,255,255,.15);
   box-shadow: var(--shadow-md);
-  cursor: pointer;
 }
 
-.reel-fullscreen-wrapper .reel-action:active { transform: translateY(1px); }
+.reel-action:active { transform: translateY(1px); }
 
-.reel-fullscreen-wrapper .reel-action__count {
+.reel-action__count {
   color: #fff;
   text-align: center;
   font-size: 12px;
 }
 
-.reel-fullscreen-wrapper .empty-state {
-  position: absolute; 
-  inset: 0; 
-  display: grid; 
-  place-items: center; 
-  color: var(--color-text);
-}
-
-.close-btn {
-  position: absolute;
-  top: var(--space-4);
-  right: var(--space-4);
-  z-index: 60;
-  background-color: var(--color-surface-alt);
-  color: var(--color-text);
-  border: 1px solid var(--color-border);
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  font-size: 1.5rem;
-  line-height: 1;
+.reel-action-group{
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: background-color var(--transition-base), transform var(--transition-base), border-color var(--transition-base);
+  gap: 4px;
+  color: #fff;
 }
 
-.close-btn:hover,
-.close-btn:focus-visible {
-  background-color: var(--color-surface);
-  border-color: var(--color-accent);
-  transform: scale(1.1);
+.empty-state{
+  position: absolute; inset: 0; display: grid; place-items: center; color: #fff;
 }
-
-/* --- Responsive Adjustments --- */
-@media (max-width: 768px) {
-  .liked-container {
-    padding: var(--space-6) var(--space-4);
-  }
-}
-
-@media (max-width: 480px) {
-  .liked-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-/* Desktop tweaks for Reel Viewer */
-@media (min-width: 768px) {
-  .reel-fullscreen-wrapper .reel-video {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 100%;
-    height: auto;
-    max-width: 420px;
-    aspect-ratio: 9 / 16;
-    border-radius: 12px;
-  }
-  .reel-fullscreen-wrapper .reel-content { 
-    padding: 36px; 
-    max-width: 600px;
-    margin: 0 auto;
-  }
-  .reel-fullscreen-wrapper .reel-actions{
-    /* This calculation positions the buttons relative to the centered video.
-      - left: 50% starts from the center of the screen.
-      - + 210px moves it to the right edge of the 420px wide video.
-      - + 16px adds a comfortable gap between the video and the buttons.
-      - 'right: auto' is added to override the default mobile positioning.
-    */
-    left: calc(50% + 210px + 16px);
-    right: auto;
-    /* Adjust bottom position to better align with the video */
-    bottom: 50%;
-    transform: translateY(50%);
-  }
-}
-
