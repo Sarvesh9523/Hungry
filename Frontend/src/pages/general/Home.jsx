@@ -1,42 +1,29 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
-import '../../styles/reels.css';
+import api from '../../services/api';
 import ReelFeed from '../../components/ReelFeed';
 
 const Home = () => {
   const [videos, setVideos] = useState([]);
 
-  const token = localStorage.getItem("token"); // mobile-safe JWT
-
   // Fetch videos
   useEffect(() => {
-    axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/food`, {
-      headers: { Authorization: `Bearer ${token}` }
-    })
+    api.get(`/api/food`)
       .then(response => {
-        console.log(response.data);
         setVideos(response.data.foodItems);
       })
       .catch(err => {
         console.error("Failed to fetch videos", err);
-        alert("Session expired. Please login again.");
-        window.location.href = "/user/login"; // redirect if token invalid
       });
-  }, [token]);
+  }, []);
 
   // Like a video
   async function likeVideo(item) {
     try {
-      const response = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/food/like`, 
-        { foodId: item._id }, 
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      const response = await api.post(`/api/food/like`, { foodId: item._id });
 
       if (response.data.like) {
-        console.log("Video liked");
         setVideos(prev => prev.map(v => v._id === item._id ? { ...v, likeCount: v.likeCount + 1 } : v));
       } else {
-        console.log("Video unliked");
         setVideos(prev => prev.map(v => v._id === item._id ? { ...v, likeCount: v.likeCount - 1 } : v));
       }
     } catch (err) {
@@ -47,10 +34,7 @@ const Home = () => {
   // Save a video
   async function saveVideo(item) {
     try {
-      const response = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/food/save`, 
-        { foodId: item._id }, 
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      const response = await api.post(`/api/food/save`, { foodId: item._id });
 
       if (response.data.save) {
         setVideos(prev => prev.map(v => v._id === item._id ? { ...v, savesCount: v.savesCount + 1 } : v));
@@ -62,12 +46,23 @@ const Home = () => {
     }
   }
 
+  // Share a video
+  async function shareVideo(item) {
+    try {
+      await api.post(`/api/food/share`, { foodId: item._id });
+      setVideos(prev => prev.map(v => v._id === item._id ? { ...v, sharesCount: (v.sharesCount || 0) + 1 } : v));
+    } catch (err) {
+      console.error("Share action failed", err);
+    }
+  }
+
   return (
     <ReelFeed
       items={videos}
       onLike={likeVideo}
       onSave={saveVideo}
-      emptyMessage=" "
+      onShare={shareVideo}
+      emptyMessage="No videos yet."
     />
   );
 };

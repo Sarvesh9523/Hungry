@@ -1,86 +1,126 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import '../../styles/auth-shared.css';
-import axios from 'axios';
+import api from '../../services/api';
+import OTPInput from '../../components/OTPInput';
+import GlassLayout from '../../components/GlassLayout';
 
 const UserRegister = () => {
   const navigate = useNavigate();
+  const [step, setStep] = useState(1);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [name, setName] = useState('');
+  const [otp, setOtp] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (e) => {
+  const [canResend, setCanResend] = useState(false);
+  const [resendTimer, setResendTimer] = useState(60);
+
+  useEffect(() => {
+    if (step !== 2) return;
+    setResendTimer(60);
+    setCanResend(false);
+    const interval = setInterval(() => {
+      setResendTimer(prev => {
+        if (prev <= 1) { setCanResend(true); clearInterval(interval); return 0; }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [step]);
+
+  const handleRegisterSubmit = async (e) => {
     e.preventDefault();
-
-    const firstName = e.target.firstName.value.trim();
-    const lastName = e.target.lastName.value.trim();
-    const email = e.target.email.value.trim();
-    const password = e.target.password.value;
-
+    if (!name || !email || !password) return setError('All fields are required');
+    if (password.length < 6) return setError('Password must be at least 6 characters');
+    setLoading(true); setError('');
     try {
-      const response = await axios.post(
-        `${import.meta.env.VITE_BACKEND_URL}/api/auth/user/register`,
-        {
-          fullName: firstName + " " + lastName,
-          email,
-          password
-        },
-        { withCredentials: true } // send cookies for desktop sessions
-      );
+      await api.post('/api/auth/user/register/send-otp', { name, email, password });
+      setStep(2);
+    } catch (err) { setError(err.response?.data?.message || 'Registration failed'); }
+    finally { setLoading(false); }
+  };
 
-      console.log("Registration response:", response.data);
+  const handleOTPComplete = (code) => setOtp(code);
 
-      // --- MOBILE SAFE: store JWT and user info in localStorage ---
-      localStorage.setItem("token", response.data.token);
-      localStorage.setItem("user", JSON.stringify(response.data.user));
+  const verifyOTP = async (e) => {
+    e.preventDefault();
+    if (!otp || otp.length < 6) return setError('Invalid OTP');
+    setLoading(true); setError('');
+    try {
+      const response = await api.post('/api/auth/user/register/verify-otp', { email, otp });
+      localStorage.setItem('token', response.data.token);
+      localStorage.setItem('refreshToken', response.data.refreshToken);
+      navigate('/home');
+    } catch (err) { setError(err.response?.data?.message || 'Invalid OTP'); }
+    finally { setLoading(false); }
+  };
 
-      // Redirect after successful registration
-      navigate("/home");
-    } catch (err) {
-      console.error("Registration error:", err);
-      alert(err.response?.data?.message || "Registration failed");
-    }
+  const handleResend = async () => {
+    if (!canResend) return;
+    setCanResend(false); setResendTimer(60); setError('');
+    try {
+      await api.post('/api/auth/resend-otp', { email, purpose: 'register' });
+      const interval = setInterval(() => {
+        setResendTimer(prev => {
+          if (prev <= 1) { setCanResend(true); clearInterval(interval); return 0; }
+          return prev - 1;
+        });
+      }, 1000);
+    } catch (err) { setError('Failed to resend'); setCanResend(true); }
   };
 
   return (
-    <div className="auth-page-wrapper">
-      <div className="auth-card" role="region" aria-labelledby="user-register-title">
-        <header>
-          <h1 id="user-register-title" className="auth-title">Create your account</h1>
-          <p className="auth-subtitle">Join to explore and enjoy delicious meals.</p>
-        </header>
-
-        <nav className="auth-alt-action" style={{ marginTop: '-4px' }}>
-          <strong style={{ fontWeight: 600 }}>Switch:</strong> <Link to="/user/register">User</Link> • <Link to="/food-partner/register">Food partner</Link>
-        </nav>
-
-        <form className="auth-form" onSubmit={handleSubmit} noValidate>
-          <div className="two-col">
-            <div className="field-group">
-              <label htmlFor="firstName">First Name</label>
-              <input id="firstName" name="firstName" placeholder="Jane" autoComplete="given-name" required />
-            </div>
-            <div className="field-group">
-              <label htmlFor="lastName">Last Name</label>
-              <input id="lastName" name="lastName" placeholder="Doe" autoComplete="family-name" required />
-            </div>
+    <GlassLayout title={step === 1 ? "Create account" : "Verify Email"} subtitle={step === 1 ? "Join us and discover amazing food instantly." : `Enter the 6-digit code sent to ${email}`}>
+      {step === 1 && (
+        <form className="w-full flex flex-col gap-4 text-left" onSubmit={handleRegisterSubmit}>
+          <div className="flex flex-col gap-1">
+            <label className="text-xs font-bold tracking-wider text-pink-300">FULL NAME</label>
+            <input type="text" placeholder="John Doe" value={name} onChange={e => setName(e.target.value)} required 
+              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder:text-white/30 focus:outline-none focus:border-pink-500 focus:ring-1 focus:ring-pink-500 transition-all font-medium" />
           </div>
-
-          <div className="field-group">
-            <label htmlFor="email">Email</label>
-            <input id="email" name="email" type="email" placeholder="you@example.com" autoComplete="email" required />
+          <div className="flex flex-col gap-1">
+            <label className="text-xs font-bold tracking-wider text-pink-300">EMAIL</label>
+            <input type="email" placeholder="you@example.com" value={email} onChange={e => setEmail(e.target.value)} required 
+              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder:text-white/30 focus:outline-none focus:border-pink-500 focus:ring-1 focus:ring-pink-500 transition-all font-medium" />
           </div>
-
-          <div className="field-group">
-            <label htmlFor="password">Password</label>
-            <input id="password" name="password" type="password" placeholder="••••••••" autoComplete="new-password" required />
+          <div className="flex flex-col gap-1">
+            <label className="text-xs font-bold tracking-wider text-pink-300">PASSWORD</label>
+            <input type="password" placeholder="Min. 6 characters" value={password} onChange={e => setPassword(e.target.value)} required 
+              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder:text-white/30 focus:outline-none focus:border-pink-500 focus:ring-1 focus:ring-pink-500 transition-all font-medium" />
           </div>
-
-          <button className="auth-submit" type="submit">Sign Up</button>
+          {error && <div className="text-red-400 text-sm bg-red-400/10 border border-red-400/20 p-2 rounded-lg text-center">{error}</div>}
+          <button type="submit" disabled={loading} className="w-full mt-2 bg-gradient-to-r from-rose-500 to-fuchsia-600 hover:from-rose-400 hover:to-fuchsia-500 text-white font-bold py-3.5 rounded-xl shadow-[0_0_20px_rgba(225,29,72,0.4)] disabled:opacity-50 transition-all active:scale-95">
+            {loading ? 'Sending...' : 'Get OTP via Email'}
+          </button>
+          
+          <div className="flex flex-col gap-2 mt-4 text-sm text-center text-white/60">
+            <div>Already have an account? <Link to="/user/login" className="text-pink-400 hover:text-pink-300 font-semibold underline underline-offset-4">Sign in</Link></div>
+            <div>Want to partner with us? <Link to="/food-partner/register" className="text-gray-400 hover:text-white font-semibold">Register as Partner</Link></div>
+          </div>
         </form>
+      )}
 
-        <div className="auth-alt-action">
-          Already have an account? <Link to="/user/login">Sign in</Link>
-        </div>
-      </div>
-    </div>
+      {step === 2 && (
+        <form className="w-full flex flex-col gap-4" onSubmit={verifyOTP}>
+          <OTPInput onComplete={handleOTPComplete} disabled={loading} />
+          {error && <div className="text-red-400 text-sm bg-red-400/10 border border-red-400/20 p-2 rounded-lg text-center">{error}</div>}
+          <button type="submit" disabled={loading || otp.length < 6} className="w-full bg-gradient-to-r from-rose-500 to-fuchsia-600 text-white font-bold py-3.5 rounded-xl shadow-[0_0_20px_rgba(225,29,72,0.4)] disabled:opacity-50 transition-all active:scale-95">
+            {loading ? 'Verifying...' : 'Create Account'}
+          </button>
+          <div className="text-center mt-4 text-sm text-white/60 flex flex-col gap-2">
+            <div>
+              Didn't receive the code? 
+              <button type="button" onClick={handleResend} disabled={!canResend} className="ml-2 text-pink-400 font-semibold hover:underline disabled:opacity-50 disabled:no-underline">
+                {canResend ? 'Resend Code' : `Resend in ${resendTimer}s`}
+              </button>
+            </div>
+            <button type="button" onClick={() => setStep(1)} className="text-white/40 hover:text-white mt-2">← Back to start</button>
+          </div>
+        </form>
+      )}
+    </GlassLayout>
   );
 };
 

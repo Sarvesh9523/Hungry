@@ -157,11 +157,24 @@ async function getSaveFood(req, res) {
 }
 
 
+async function shareFood(req, res) {
+    const { foodId } = req.body;
+    try {
+        await foodModel.findByIdAndUpdate(foodId, {
+            $inc: { sharesCount: 1 }
+        });
+        res.status(200).json({ success: true, message: "Food shared successfully" });
+    } catch (error) {
+        res.status(500).json({ success: false, message: "Failed to share food" });
+    }
+}
+
 module.exports = {
     createFood,
     getFoodItems,
     likeFood,
     getLikedFood,
     saveFood,
-    getSaveFood
+    getSaveFood,
+    shareFood
 }

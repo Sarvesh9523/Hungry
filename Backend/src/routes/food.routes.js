@@ -43,6 +43,9 @@ router.get('/save',
     foodController.getSaveFood
 )
 
-
+router.post('/share',
+    authMiddleware.authUserMiddleware,
+    foodController.shareFood
+)
 
 module.exports = router

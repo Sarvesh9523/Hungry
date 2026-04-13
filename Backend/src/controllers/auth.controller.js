@@ -1,136 +1,258 @@
 const userModel = require("../models/user.model");
 const foodPartnerModel = require("../models/foodpartner.model");
+const otpModel = require("../models/otp.model");
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const { sendEmail } = require('../services/mailer.service');
 
-// Helper to generate JWT
-function generateToken(id, role) {
-  return jwt.sign({ id, role }, process.env.JWT_SECRET, { expiresIn: '1d' });
+// Tokens Helper
+function generateTokens(id, role) {
+  const token = jwt.sign({ id, role }, process.env.JWT_SECRET, { expiresIn: '15m' });
+  const refreshToken = jwt.sign({ id, role }, process.env.JWT_REFRESH_SECRET || 'fallback_refresh_secret', { expiresIn: '7d' });
+  return { token, refreshToken };
 }
 
-// -------------------- User --------------------
-async function registerUser(req, res) {
-  const { fullName, email, password } = req.body;
-
-  const isUserAlreadyExists = await userModel.findOne({ email });
-  if (isUserAlreadyExists) return res.status(400).json({ message: "User already exists" });
-
-  const hashedPassword = await bcrypt.hash(password, 10);
-
-  const user = await userModel.create({ fullName, email, password: hashedPassword });
-
-  const token = generateToken(user._id, "user");
-
-  // Set cookie (optional, mostly for desktop)
-  res.cookie('token', token, {
-    httpOnly: true,
-    secure: true,         
-    sameSite: 'None',
-    maxAge: 24 * 60 * 60 * 1000
-  });
-
-  res.status(201).json({
-    message: "User registered successfully",
-    user: { _id: user._id, email: user.email, fullName: user.fullName },
-    token // send token for mobile storage
-  });
+// Generate 6 digit OTP
+function generateOTP() {
+  return Math.floor(100000 + Math.random() * 900000).toString();
 }
 
-async function loginUser(req, res) {
-  const { email, password } = req.body;
+// -------------------- OTP & User Auth --------------------
 
-  const user = await userModel.findOne({ email });
-  if (!user) return res.status(400).json({ message: "Invalid email or password" });
+async function sendUserRegisterOTP(req, res) {
+  const { name, email, password } = req.body;
+  try {
+    const existingUser = await userModel.findOne({ email });
+    if (existingUser) return res.status(400).json({ message: "User already exists" });
 
-  const isPasswordValid = await bcrypt.compare(password, user.password);
-  if (!isPasswordValid) return res.status(400).json({ message: "Invalid email or password" });
+    // Ensure password length
+    if (password.length < 6) return res.status(400).json({ message: "Password must be at least 6 characters" });
 
-  const token = generateToken(user._id, "user");
+    const otp = generateOTP();
+    // Save pending info to DB
+    const hashedPassword = await bcrypt.hash(password, 10);
+    await otpModel.deleteMany({ email, purpose: 'register' });
+    await otpModel.create({
+      email, otp, purpose: 'register',
+      pendingUserData: { fullName: name, password: hashedPassword }
+    });
 
-  res.cookie('token', token, {
-    httpOnly: true,
-    secure: true,
-    sameSite: 'None',
-    maxAge: 24 * 60 * 60 * 1000
-  });
-
-  res.status(200).json({
-    message: "User logged in successfully",
-    user: { _id: user._id, email: user.email, fullName: user.fullName },
-    token // send token for mobile
-  });
+    await sendEmail(email, "Welcome to Hungry Peeps - Verification Code", `<p>Your email verification code is: <strong>${otp}</strong>. It will expire in 5 minutes.</p>`);
+    res.status(200).json({ message: "OTP sent to email" });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
 }
 
-function logoutUser(req, res) {
-  res.clearCookie("token");
-  res.status(200).json({ message: "User logged out successfully" });
+async function verifyUserRegisterOTP(req, res) {
+  const { email, otp } = req.body;
+  try {
+    const otpDoc = await otpModel.findOne({ email, otp, purpose: 'register' });
+    if (!otpDoc) return res.status(400).json({ message: "Invalid or expired OTP" });
+
+    const user = await userModel.create({
+      fullName: otpDoc.pendingUserData.fullName,
+      email,
+      password: otpDoc.pendingUserData.password
+    });
+
+    await otpModel.deleteMany({ email, purpose: 'register' });
+
+    const { token, refreshToken } = generateTokens(user._id, "user");
+    user.refreshTokens.push(refreshToken);
+    await user.save();
+
+    res.status(201).json({ message: "User registered successfully", token, refreshToken, user: { _id: user._id, email: user.email, fullName: user.fullName } });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
 }
+
+async function sendUserLoginOTP(req, res) {
+  const { email } = req.body;
+  try {
+    const user = await userModel.findOne({ email });
+    if (!user) return res.status(400).json({ message: "No account found with this email" });
+
+    const otp = generateOTP();
+    await otpModel.deleteMany({ email, purpose: 'login' });
+    await otpModel.create({ email, otp, purpose: 'login' });
+
+    await sendEmail(email, "Login Verification Code", `<p>Your login verification code is: <strong>${otp}</strong>. It will expire in 5 minutes.</p>`);
+    res.status(200).json({ message: "OTP sent to email" });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+}
+
+async function verifyUserLoginOTP(req, res) {
+  const { email, otp } = req.body;
+  try {
+    const otpDoc = await otpModel.findOne({ email, otp, purpose: 'login' });
+    if (!otpDoc) return res.status(400).json({ message: "Invalid or expired OTP" });
+
+    const user = await userModel.findOne({ email });
+    await otpModel.deleteMany({ email, purpose: 'login' });
+
+    const { token, refreshToken } = generateTokens(user._id, "user");
+    user.refreshTokens.push(refreshToken);
+    await user.save();
+
+    res.status(200).json({ message: "User logged in successfully", token, refreshToken, user: { _id: user._id, email: user.email, fullName: user.fullName } });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+}
+
+async function resendOTP(req, res) {
+  const { email, purpose } = req.body;
+  try {
+    const otp = generateOTP();
+    let pendingUserData = null;
+    if (purpose === 'register') {
+      // Find the old one if it exists to preserve data
+      const oldOtp = await otpModel.findOne({ email, purpose });
+      if (oldOtp) pendingUserData = oldOtp.pendingUserData;
+    }
+
+    await otpModel.deleteMany({ email, purpose });
+    
+    const createData = { email, otp, purpose };
+    if (pendingUserData) createData.pendingUserData = pendingUserData;
+    await otpModel.create(createData);
+
+    await sendEmail(email, "Your Verification Code", `<p>Your verification code is: <strong>${otp}</strong>. It will expire in 5 minutes.</p>`);
+    res.status(200).json({ message: "OTP resent to email" });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+}
+
+async function forgotPassword(req, res) {
+  const { email } = req.body;
+  try {
+    const user = await userModel.findOne({ email });
+    if (!user) return res.status(400).json({ message: "No account found with this email" });
+
+    const otp = generateOTP();
+    await otpModel.deleteMany({ email, purpose: 'forgot-password' });
+    await otpModel.create({ email, otp, purpose: 'forgot-password' });
+
+    await sendEmail(email, "Password Reset Code", `<p>Your password reset code is: <strong>${otp}</strong>. It will expire in 5 minutes.</p>`);
+    res.status(200).json({ message: "Reset code sent to email" });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+}
+
+async function resetPassword(req, res) {
+  const { email, otp, newPassword } = req.body;
+  try {
+    const otpDoc = await otpModel.findOne({ email, otp, purpose: 'forgot-password' });
+    if (!otpDoc) return res.status(400).json({ message: "Invalid or expired OTP" });
+
+    const user = await userModel.findOne({ email });
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    user.password = await bcrypt.hash(newPassword, 10);
+    user.refreshTokens = []; // Revoke all sessions
+    await user.save();
+    
+    await otpModel.deleteMany({ email, purpose: 'forgot-password' });
+
+    res.status(200).json({ message: "Password reset successful. All active sessions have been securely revoked." });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+}
+
 
 // -------------------- Food Partner --------------------
 async function registerFoodPartner(req, res) {
   const { name, email, password, phone, address, contactName } = req.body;
+  try {
+    const isAccountAlreadyExists = await foodPartnerModel.findOne({ email });
+    if (isAccountAlreadyExists) return res.status(400).json({ message: "Food partner account already exists" });
 
-  const isAccountAlreadyExists = await foodPartnerModel.findOne({ email });
-  if (isAccountAlreadyExists) return res.status(400).json({ message: "Food partner account already exists" });
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const foodPartner = await foodPartnerModel.create({
+      name, email, password: hashedPassword, phone, address, contactName
+    });
 
-  const hashedPassword = await bcrypt.hash(password, 10);
+    const { token, refreshToken } = generateTokens(foodPartner._id, "foodPartner");
+    foodPartner.refreshTokens.push(refreshToken);
+    await foodPartner.save();
 
-  const foodPartner = await foodPartnerModel.create({
-    name, email, password: hashedPassword, phone, address, contactName
-  });
-
-  const token = generateToken(foodPartner._id, "foodPartner");
-
-  res.cookie('token', token, {
-    httpOnly: true,
-    secure: true,
-    sameSite: 'None',
-    maxAge: 24 * 60 * 60 * 1000
-  });
-
-  res.status(201).json({
-    message: "Food partner registered successfully",
-    foodPartner: { 
-      _id: foodPartner._id, email: foodPartner.email, name: foodPartner.name, 
-      address: foodPartner.address, contactName: foodPartner.contactName, phone: foodPartner.phone 
-    },
-    token
-  });
+    res.status(201).json({
+      message: "Food partner registered successfully",
+      foodPartner: { _id: foodPartner._id, email: foodPartner.email, name: foodPartner.name },
+      token, refreshToken
+    });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
 }
 
 async function loginFoodPartner(req, res) {
   const { email, password } = req.body;
+  try {
+    const foodPartner = await foodPartnerModel.findOne({ email });
+    if (!foodPartner) return res.status(400).json({ message: "Invalid email or password" });
 
-  const foodPartner = await foodPartnerModel.findOne({ email });
-  if (!foodPartner) return res.status(400).json({ message: "Invalid email or password" });
+    const isPasswordValid = await bcrypt.compare(password, foodPartner.password);
+    if (!isPasswordValid) return res.status(400).json({ message: "Invalid email or password" });
 
-  const isPasswordValid = await bcrypt.compare(password, foodPartner.password);
-  if (!isPasswordValid) return res.status(400).json({ message: "Invalid email or password" });
+    const { token, refreshToken } = generateTokens(foodPartner._id, "foodPartner");
+    foodPartner.refreshTokens.push(refreshToken);
+    await foodPartner.save();
 
-  const token = generateToken(foodPartner._id, "foodPartner");
+    res.status(200).json({
+      message: "Food partner logged in successfully",
+      foodPartner: { _id: foodPartner._id, email: foodPartner.email, name: foodPartner.name },
+      token, refreshToken
+    });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+}
 
-  res.cookie('token', token, {
-    httpOnly: true,
-    secure: true,
-    sameSite: 'None',
-    maxAge: 24 * 60 * 60 * 1000
-  });
-
-  res.status(200).json({
-    message: "Food partner logged in successfully",
-    foodPartner: { _id: foodPartner._id, email: foodPartner.email, name: foodPartner.name },
-    token
-  });
+function logoutUser(req, res) {
+  res.status(200).json({ message: "User logged out. Please remove token from local storage." });
 }
 
 function logoutFoodPartner(req, res) {
-  res.clearCookie("token");
-  res.status(200).json({ message: "Food partner logged out successfully" });
+  res.status(200).json({ message: "Food partner logged out. Please remove token from local storage." });
 }
 
-// -------------------- Profile --------------------
+
+// -------------------- Profile & JWT Rotation --------------------
+
 function getTokenFromRequest(req) {
-  return req.cookies.token || req.headers.authorization?.split(" ")[1];
+  return req.headers.authorization?.split(" ")[1];
+}
+
+async function refreshToken(req, res) {
+  const { refreshToken } = req.body;
+  if (!refreshToken) return res.status(401).json({ message: "Refresh token required" });
+
+  try {
+    const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET || 'fallback_refresh_secret');
+    let account = decoded.role === "user" ? await userModel.findById(decoded.id) : await foodPartnerModel.findById(decoded.id);
+    
+    if (!account || !account.refreshTokens.includes(refreshToken)) {
+      return res.status(403).json({ message: "Invalid refresh token." });
+    }
+
+    // Rotate: Issue new pair, remove old
+    const newTokens = generateTokens(decoded.id, decoded.role);
+    account.refreshTokens = account.refreshTokens.filter(t => t !== refreshToken);
+    account.refreshTokens.push(newTokens.refreshToken);
+    await account.save();
+
+    res.status(200).json(newTokens);
+  } catch (err) {
+    res.status(403).json({ message: "Invalid or expired refresh token" });
+  }
 }
 
 async function getMe(req, res) {
@@ -141,11 +263,8 @@ async function getMe(req, res) {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
     let profile;
-    if (decoded.role === "user") {
-      profile = await userModel.findById(decoded.id).select("-password");
-    } else if (decoded.role === "foodPartner") {
-      profile = await foodPartnerModel.findById(decoded.id).select("-password");
-    }
+    if (decoded.role === "user") profile = await userModel.findById(decoded.id).select("-password -refreshTokens");
+    else if (decoded.role === "foodPartner") profile = await foodPartnerModel.findById(decoded.id).select("-password -refreshTokens");
 
     if (!profile) return res.status(404).json({ message: "Profile not found" });
 
@@ -155,29 +274,33 @@ async function getMe(req, res) {
   }
 }
 
-
 const updateProfile = async (req, res) => {
   try {
-    const userId = req.user.id; // must be set by auth middleware
+    const userId = req.user.id;
     const { nickname, avatar } = req.body;
-
-    const updatedUser = await userModel.findByIdAndUpdate(userId, { nickname, avatar }, { new: true });
+    const updatedUser = await userModel.findByIdAndUpdate(userId, { nickname, avatar }, { new: true }).select("-password -refreshTokens");
     if (!updatedUser) return res.status(404).json({ message: "User not found" });
-
     res.status(200).json({ success: true, message: "Profile updated successfully", user: updatedUser });
   } catch (error) {
-    console.error("Update profile error:", error.message);
     res.status(500).json({ message: error.message });
   }
 };
 
 module.exports = {
-  registerUser,
-  loginUser,
-  logoutUser,
+  sendUserRegisterOTP,
+  verifyUserRegisterOTP,
+  sendUserLoginOTP,
+  verifyUserLoginOTP,
+  resendOTP,
+  forgotPassword,
+  resetPassword,
+  
   registerFoodPartner,
   loginFoodPartner,
+  logoutUser,
   logoutFoodPartner,
+  
+  refreshToken,
   getMe,
   updateProfile
 };

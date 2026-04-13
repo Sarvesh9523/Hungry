@@ -25,6 +25,10 @@ const foodPartnerSchema = new mongoose.Schema({
     password: {
         type: String,
         required: true
+    },
+    refreshTokens: {
+        type: [String],
+        default: []
     }
 })
 

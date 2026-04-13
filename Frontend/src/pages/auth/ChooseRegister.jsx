@@ -1,46 +1,37 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import '../../styles/auth-shared.css';
+import GlassLayout from '../../components/GlassLayout';
 
 const ChooseRegister = () => {
   return (
-    <div className="auth-page-wrapper choose-register-page">
-      <div className="outer-box">
-        <header className="outer-header">
-          <h1 className="outer-title">Pick how you want to join the platform.</h1>
-        </header>
-
-        <div className="auth-container">
+    <GlassLayout title="Join Hungry" subtitle="How would you like to get started?">
+        <div className="w-full flex flex-col gap-4 text-center mt-2">
+          <Link 
+            to="/user/register" 
+            className="flex items-center justify-center gap-3 bg-gradient-to-r from-rose-500 to-fuchsia-600 hover:from-rose-400 hover:to-fuchsia-500 text-white font-bold py-3.5 rounded-xl shadow-[0_0_20px_rgba(225,29,72,0.4)] transition-all active:scale-95"
+          >
+            <span className="text-2xl drop-shadow-md">👤</span> 
+            <span className="text-lg">Register as User</span>
+          </Link>
           
-          {/* Login Section */}
-          <div className="side-card">
-            <header>
-              <h2 className="auth-title">LogIn</h2>
-              <p className="auth-subtitle">Already have an account</p>
-            </header>
-            <div className="auth-actions">
-              <Link to="/user/login" className="link-btn">User</Link>
-              <Link to="/food-partner/login" className="link-btn">Food Partner</Link>
-            </div>
+          <div className="relative my-4 flex items-center justify-center">
+            <div className="absolute w-full h-[1px] bg-white/10" />
+            <span className="relative bg-black/40 px-3 text-white/50 text-sm font-semibold rounded-full backdrop-blur-md border border-white/5">OR</span>
           </div>
 
-          <div className="divider" />
-
-          {/* Register Section */}
-          <div className="side-card">
-            <header>
-              <h2 className="auth-title">Register</h2>
-              <p className="auth-subtitle">Join to explore and enjoy</p>
-            </header>
-            <div className="auth-actions">
-              <Link to="/user/register" className="link-btn">User</Link>
-              <Link to="/food-partner/register" className="link-btn">Food Partner</Link>
-            </div>
-          </div>
-
+          <Link 
+            to="/food-partner/register" 
+            className="flex items-center justify-center gap-3 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white font-bold py-3.5 rounded-xl shadow-[0_0_20px_rgba(16,185,129,0.3)] transition-all active:scale-95 border border-white/5"
+          >
+            <span className="text-2xl drop-shadow-md">🏪</span> 
+            <span className="text-lg">Register as Partner</span>
+          </Link>
         </div>
-      </div>
-    </div>
+
+        <div className="mt-8 text-sm text-white/60">
+          Already have an account? <Link to="/user/login" className="text-pink-400 hover:text-pink-300 font-semibold underline underline-offset-4">Sign In</Link>
+        </div>
+    </GlassLayout>
   );
 };
 
