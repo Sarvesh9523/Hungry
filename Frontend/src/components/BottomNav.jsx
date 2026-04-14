@@ -54,37 +54,41 @@ const BottomNav = () => {
         >
           <div className="w-full md:w-[calc(100dvh*9/16)] flex justify-around items-center">
 
-            {/* Home */}
-            <NavLink
-              to="/home"
-              end
-              className={({ isActive }) =>
-                `flex flex-col items-center gap-1 transition-all duration-300 ${isActive ? 'text-pink-400 scale-110 drop-shadow-[0_0_8px_rgba(244,114,182,0.6)]' : 'text-white/60 hover:text-white/90'}`
-              }
-            >
-              <span className="w-7 h-7 flex items-center justify-center">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M3 10.5 12 3l9 7.5" />
-                  <path d="M5 10v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V10" />
-                </svg>
-              </span>
-              <span className="text-[10px] font-bold tracking-wider">Home</span>
-            </NavLink>
+            {/* Home - Only for regular users */}
+            {role === "user" && (
+              <NavLink
+                to="/home"
+                end
+                className={({ isActive }) =>
+                  `flex flex-col items-center gap-1 transition-all duration-300 ${isActive ? 'text-pink-400 scale-110 drop-shadow-[0_0_8px_rgba(244,114,182,0.6)]' : 'text-white/60 hover:text-white/90'}`
+                }
+              >
+                <span className="w-7 h-7 flex items-center justify-center">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M3 10.5 12 3l9 7.5" />
+                    <path d="M5 10v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V10" />
+                  </svg>
+                </span>
+                <span className="text-[10px] font-bold tracking-wider">Home</span>
+              </NavLink>
+            )}
 
-            {/* Saved */}
-            <NavLink
-              to="/saved"
-              className={({ isActive }) =>
-                `flex flex-col items-center gap-1 transition-all duration-300 ${isActive ? 'text-amber-400 scale-110 drop-shadow-[0_0_8px_rgba(251,191,36,0.6)]' : 'text-white/60 hover:text-white/90'}`
-              }
-            >
-              <span className="w-7 h-7 flex items-center justify-center">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M6 3h12a1 1 0 0 1 1 1v17l-7-4-7 4V4a1 1 0 0 1 1-1z" />
-                </svg>
-              </span>
-              <span className="text-[10px] font-bold tracking-wider">Saved</span>
-            </NavLink>
+            {/* Saved - Only for regular users */}
+            {role === "user" && (
+              <NavLink
+                to="/saved"
+                className={({ isActive }) =>
+                  `flex flex-col items-center gap-1 transition-all duration-300 ${isActive ? 'text-amber-400 scale-110 drop-shadow-[0_0_8px_rgba(251,191,36,0.6)]' : 'text-white/60 hover:text-white/90'}`
+                }
+              >
+                <span className="w-7 h-7 flex items-center justify-center">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M6 3h12a1 1 0 0 1 1 1v17l-7-4-7 4V4a1 1 0 0 1 1-1z" />
+                  </svg>
+                </span>
+                <span className="text-[10px] font-bold tracking-wider">Saved</span>
+              </NavLink>
+            )}
 
             {/* Profile */}
             {role && profileId && (

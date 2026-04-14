@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import api from '../../services/api';
+import { toast } from '../../utils/toast';
 import GlassLayout from '../../components/GlassLayout';
 
 const FoodPartnerLogin = () => {
@@ -12,14 +13,26 @@ const FoodPartnerLogin = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!email || !password) return setError('All fields are required');
+    if (!email || !password) {
+      toast.warning('All fields are required');
+      return;
+    }
     setLoading(true); setError('');
     try {
       const response = await api.post('/api/auth/food-partner/login', { email, password });
       localStorage.setItem('token', response.data.token);
       localStorage.setItem('refreshToken', response.data.refreshToken);
-      navigate('/food-partner/profile');
-    } catch (err) { setError(err.response?.data?.message || 'Login failed'); }
+      localStorage.setItem('userRole', 'foodPartner');
+      toast.success('Logged in successfully! Welcome back! 🎉');
+      // Redirect to partner profile with the ID
+      setTimeout(() => {
+        navigate(`/food-partner/${response.data.foodPartner._id || 'profile'}`);
+      }, 500);
+    } catch (err) {
+      const errorMsg = err.response?.data?.message || 'Login failed';
+      toast.error(errorMsg);
+      setError(errorMsg);
+    }
     finally { setLoading(false); }
   };
 
@@ -44,13 +57,18 @@ const FoodPartnerLogin = () => {
           <input type="password" placeholder="Enter your password" value={password} onChange={e => setPassword(e.target.value)} required 
             className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder:text-white/30 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all font-medium" />
         </div>
-        {error && <div className="text-red-400 text-sm bg-red-400/10 border border-red-400/20 p-2 rounded-lg text-center">{error}</div>}
         <button type="submit" disabled={loading} className="w-full mt-2 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white font-bold py-3.5 rounded-xl shadow-[0_0_20px_rgba(16,185,129,0.3)] disabled:opacity-50 transition-all active:scale-95 border border-white/10">
           {loading ? 'Authenticating...' : 'Sign In as Partner'}
         </button>
         <div className="flex flex-col gap-2 mt-4 text-sm text-center text-white/60">
           <div>Not a partner yet? <Link to="/food-partner/register" className="text-emerald-400 hover:text-emerald-300 font-semibold underline underline-offset-4">Register your business</Link></div>
-          <div>Are you a customer? <Link to="/user/login" className="text-gray-400 hover:text-white font-semibold">Sign in here</Link></div>
+          <div className="flex items-center justify-center gap-2">
+            <div className="h-[1px] flex-1 bg-white/10" />
+            <span className="text-xs text-white/40">OR</span>
+            <div className="h-[1px] flex-1 bg-white/10" />
+          </div>
+          <Link to="/" className="text-white/80 hover:text-white font-semibold">← Back to choices</Link>
+          <div>Are you a customer? <Link to="/user/login" className="text-pink-400 hover:text-pink-300 font-semibold underline underline-offset-4">Customer login</Link></div>
         </div>
       </form>
     </GlassLayout>

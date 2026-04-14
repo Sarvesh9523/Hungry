@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import api from '../../services/api';
 import { useNavigate } from 'react-router-dom';
+import { toast } from '../../utils/toast';
 import backgroundPoster from '../../assets/background_poster.png';
 
 const CreateFood = () => {
@@ -49,7 +50,20 @@ const CreateFood = () => {
         e.preventDefault();
 
         const token = localStorage.getItem("token");
-        if (!token) return alert("You must be logged in to create food.");
+        if (!token) {
+            toast.error("You must be logged in to create food.");
+            return;
+        }
+
+        if (!name.trim()) {
+            toast.warning("Please enter a meal title.");
+            return;
+        }
+
+        if (!videoFile) {
+            toast.warning("Please select a video file.");
+            return;
+        }
 
         setLoading(true);
         const formData = new FormData();
@@ -60,11 +74,33 @@ const CreateFood = () => {
         try {
             const response = await api.post('/api/food', formData);
 
-            const foodPartnerId = response.data.foodPartner._id;
-            navigate(`/food-partner/${foodPartnerId}`);
+            toast.success(`"${name}" published successfully! 🎉`);
+            
+            // Clear form
+            setName('');
+            setDescription('');
+            setVideoFile(null);
+            setVideoURL('');
+            
+            // Wait a moment then redirect
+            setTimeout(() => {
+                navigate(-1); // Go back to profile
+            }, 500);
         } catch (error) {
             console.error("Error creating food:", error);
-            alert("Failed to create food. Please try again.");
+            
+            // More specific error messages
+            if (error.response?.status === 400) {
+                toast.error(error.response?.data?.message || "Please fill in all required fields.");
+            } else if (error.response?.status === 401) {
+                toast.error("You are not authorized. Please log in as a food partner.");
+            } else if (error.response?.status === 413) {
+                toast.error("Video file is too large. Max size is 50MB.");
+            } else if (error.response?.status === 500) {
+                toast.error("Server error. Please try again later.");
+            } else {
+                toast.error(error.response?.data?.message || "Failed to publish meal. Please try again.");
+            }
         } finally {
             setLoading(false);
         }
@@ -81,6 +117,13 @@ const CreateFood = () => {
             <div className="absolute inset-0 bg-gradient-to-tr from-emerald-900/40 via-teal-900/30 to-black z-0 mix-blend-color" />
 
             <div className="relative z-10 w-full max-w-2xl bg-glass border border-white/10 shadow-2xl rounded-3xl p-6 md:p-10">
+                <button 
+                  onClick={() => navigate(-1)}
+                  className="absolute top-6 left-6 px-3 py-2 bg-white/10 hover:bg-white/20 text-white transition-colors rounded-xl text-sm font-semibold border border-white/20 backdrop-blur z-10 flex items-center gap-1"
+                >
+                  ← Back
+                </button>
+
                 <header className="mb-8 text-center">
                     <span className="bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-3 py-1 rounded-full text-xs font-bold tracking-widest shadow-[0_0_15px_rgba(16,185,129,0.2)] mb-4 inline-block">
                         BUSINESS PORTAL
@@ -151,6 +194,14 @@ const CreateFood = () => {
                         className="w-full mt-4 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white font-bold py-4 rounded-xl shadow-[0_0_20px_rgba(16,185,129,0.4)] disabled:opacity-50 transition-all active:scale-95 border border-white/10 text-lg"
                     >
                         {loading ? 'Publishing Reel...' : 'Publish Meal'}
+                    </button>
+
+                    <button 
+                        type="button"
+                        onClick={() => navigate(-1)}
+                        className="w-full bg-white/10 hover:bg-white/20 text-white font-semibold py-3 rounded-xl transition-all border border-white/10"
+                    >
+                        Cancel
                     </button>
                 </form>
             </div>

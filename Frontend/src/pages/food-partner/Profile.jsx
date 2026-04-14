@@ -84,6 +84,13 @@ const FoodPartnerProfile = () => {
 
           <header className="flex justify-between items-center mb-6">
             <h2 className="text-2xl font-bold text-white drop-shadow-md">All Posts</h2>
+            <button
+              onClick={() => navigate('/create-food')}
+              className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white font-bold rounded-xl shadow-[0_0_20px_rgba(16,185,129,0.3)] transition-all active:scale-95 border border-emerald-400/20"
+            >
+              <span className="text-lg">🎬</span>
+              <span>Upload Reel</span>
+            </button>
           </header>
 
           <section className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">

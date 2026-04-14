@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import api from '../../services/api';
+import { toast } from '../../utils/toast';
 import OTPInput from '../../components/OTPInput';
 import GlassLayout from '../../components/GlassLayout';
 
@@ -32,13 +33,24 @@ const UserRegister = () => {
 
   const handleRegisterSubmit = async (e) => {
     e.preventDefault();
-    if (!name || !email || !password) return setError('All fields are required');
-    if (password.length < 6) return setError('Password must be at least 6 characters');
+    if (!name || !email || !password) {
+      toast.warning('All fields are required');
+      return;
+    }
+    if (password.length < 6) {
+      toast.warning('Password must be at least 6 characters');
+      return;
+    }
     setLoading(true); setError('');
     try {
       await api.post('/api/auth/user/register/send-otp', { name, email, password });
+      toast.success('OTP sent to your email!');
       setStep(2);
-    } catch (err) { setError(err.response?.data?.message || 'Registration failed'); }
+    } catch (err) {
+      const errorMsg = err.response?.data?.message || 'Registration failed';
+      toast.error(errorMsg);
+      setError(errorMsg);
+    }
     finally { setLoading(false); }
   };
 
@@ -46,14 +58,25 @@ const UserRegister = () => {
 
   const verifyOTP = async (e) => {
     e.preventDefault();
-    if (!otp || otp.length < 6) return setError('Invalid OTP');
+    if (!otp || otp.length < 6) {
+      toast.warning('Please enter a valid 6-digit OTP');
+      return;
+    }
     setLoading(true); setError('');
     try {
       const response = await api.post('/api/auth/user/register/verify-otp', { email, otp });
       localStorage.setItem('token', response.data.token);
       localStorage.setItem('refreshToken', response.data.refreshToken);
-      navigate('/home');
-    } catch (err) { setError(err.response?.data?.message || 'Invalid OTP'); }
+      localStorage.setItem('userRole', 'user');
+      toast.success('Account created successfully! Welcome! 🎉');
+      setTimeout(() => {
+        navigate('/home');
+      }, 500);
+    } catch (err) {
+      const errorMsg = err.response?.data?.message || 'Invalid OTP';
+      toast.error(errorMsg);
+      setError(errorMsg);
+    }
     finally { setLoading(false); }
   };
 
@@ -62,13 +85,19 @@ const UserRegister = () => {
     setCanResend(false); setResendTimer(60); setError('');
     try {
       await api.post('/api/auth/resend-otp', { email, purpose: 'register' });
+      toast.success('OTP resent to your email!');
       const interval = setInterval(() => {
         setResendTimer(prev => {
           if (prev <= 1) { setCanResend(true); clearInterval(interval); return 0; }
           return prev - 1;
         });
       }, 1000);
-    } catch (err) { setError('Failed to resend'); setCanResend(true); }
+    } catch (err) {
+      const errorMsg = 'Failed to resend OTP';
+      toast.error(errorMsg);
+      setError(errorMsg);
+      setCanResend(true);
+    }
   };
 
   return (
@@ -90,14 +119,19 @@ const UserRegister = () => {
             <input type="password" placeholder="Min. 6 characters" value={password} onChange={e => setPassword(e.target.value)} required 
               className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder:text-white/30 focus:outline-none focus:border-pink-500 focus:ring-1 focus:ring-pink-500 transition-all font-medium" />
           </div>
-          {error && <div className="text-red-400 text-sm bg-red-400/10 border border-red-400/20 p-2 rounded-lg text-center">{error}</div>}
           <button type="submit" disabled={loading} className="w-full mt-2 bg-gradient-to-r from-rose-500 to-fuchsia-600 hover:from-rose-400 hover:to-fuchsia-500 text-white font-bold py-3.5 rounded-xl shadow-[0_0_20px_rgba(225,29,72,0.4)] disabled:opacity-50 transition-all active:scale-95">
             {loading ? 'Sending...' : 'Get OTP via Email'}
           </button>
           
-          <div className="flex flex-col gap-2 mt-4 text-sm text-center text-white/60">
+          <div className="flex flex-col gap-2 mt-6 text-sm text-center text-white/60">
             <div>Already have an account? <Link to="/user/login" className="text-pink-400 hover:text-pink-300 font-semibold underline underline-offset-4">Sign in</Link></div>
-            <div>Want to partner with us? <Link to="/food-partner/register" className="text-gray-400 hover:text-white font-semibold">Register as Partner</Link></div>
+            <div className="flex items-center justify-center gap-2">
+              <div className="h-[1px] flex-1 bg-white/10" />
+              <span className="text-xs text-white/40">OR</span>
+              <div className="h-[1px] flex-1 bg-white/10" />
+            </div>
+            <Link to="/" className="text-white/80 hover:text-white font-semibold">← Back to choices</Link>
+            <div>Want to partner with us? <Link to="/food-partner/register" className="text-emerald-400 hover:text-emerald-300 font-semibold underline underline-offset-4">Register as Partner</Link></div>
           </div>
         </form>
       )}
@@ -105,7 +139,6 @@ const UserRegister = () => {
       {step === 2 && (
         <form className="w-full flex flex-col gap-4" onSubmit={verifyOTP}>
           <OTPInput onComplete={handleOTPComplete} disabled={loading} />
-          {error && <div className="text-red-400 text-sm bg-red-400/10 border border-red-400/20 p-2 rounded-lg text-center">{error}</div>}
           <button type="submit" disabled={loading || otp.length < 6} className="w-full bg-gradient-to-r from-rose-500 to-fuchsia-600 text-white font-bold py-3.5 rounded-xl shadow-[0_0_20px_rgba(225,29,72,0.4)] disabled:opacity-50 transition-all active:scale-95">
             {loading ? 'Verifying...' : 'Create Account'}
           </button>
