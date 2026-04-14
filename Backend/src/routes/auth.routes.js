@@ -5,7 +5,8 @@ const { authUserMiddleware } = require("../middlewares/auth.middleware");
 const router = express.Router();
 
 // User auth OTP APIs
-router.post('/login', authController.loginUser);
+router.post('/user/login/send-otp', authController.sendUserLoginOTP);
+router.post('/user/login/verify-otp', authController.verifyUserLoginOTP);
 router.post('/user/register/send-otp', authController.sendUserRegisterOTP);
 router.post('/user/register/verify-otp', authController.verifyUserRegisterOTP);
 router.post('/resend-otp', authController.resendOTP);
