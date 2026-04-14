@@ -10,7 +10,7 @@ const cors = require('cors');
 
 const app = express();
 app.use(cors({
-    origin: ["https://hungry-peeps.vercel.app", "http://localhost:5173"], // remove trailing slash
+    origin: "https://hungry-peeps.vercel.app", // remove trailing slash
     credentials: true
 }));
 
