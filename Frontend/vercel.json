@@ -1,5 +1,8 @@
 {
   "rewrites": [
-    { "source": "/(.*)", "destination": "/index.html" }
+    {
+      "source": "/api/:path*",
+      "destination": "https://hungry-backend-kqx8.onrender.com/api/:path*"
+    }
   ]
 }
