@@ -68,42 +68,6 @@ async function verifyUserRegisterOTP(req, res) {
   }
 }
 
-async function sendUserLoginOTP(req, res) {
-  const { email } = req.body;
-  try {
-    const user = await userModel.findOne({ email });
-    if (!user) return res.status(400).json({ message: "No account found with this email" });
-
-    const otp = generateOTP();
-    await otpModel.deleteMany({ email, purpose: 'login' });
-    await otpModel.create({ email, otp, purpose: 'login' });
-
-    await sendEmail(email, "Login Verification Code", `<p>Your login verification code is: <strong>${otp}</strong>. It will expire in 5 minutes.</p>`);
-    res.status(200).json({ message: "OTP sent to email" });
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-}
-
-async function verifyUserLoginOTP(req, res) {
-  const { email, otp } = req.body;
-  try {
-    const otpDoc = await otpModel.findOne({ email, otp, purpose: 'login' });
-    if (!otpDoc) return res.status(400).json({ message: "Invalid or expired OTP" });
-
-    const user = await userModel.findOne({ email });
-    await otpModel.deleteMany({ email, purpose: 'login' });
-
-    const { token, refreshToken } = generateTokens(user._id, "user");
-    user.refreshTokens.push(refreshToken);
-    await user.save();
-
-    res.status(200).json({ message: "User logged in successfully", token, refreshToken, user: { _id: user._id, email: user.email, fullName: user.fullName } });
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-}
-
 async function resendOTP(req, res) {
   const { email, purpose } = req.body;
   try {
@@ -406,8 +370,6 @@ const updateProfile = async (req, res) => {
 module.exports = {
   sendUserRegisterOTP,
   verifyUserRegisterOTP,
-  sendUserLoginOTP,
-  verifyUserLoginOTP,
   resendOTP,
   forgotPassword,
   resetPassword,
