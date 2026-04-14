@@ -23,9 +23,12 @@ const Liked = () => {
   const likeVideo = async (item) => {
     try {
       const response = await api.post('/api/food/like', { foodId: item._id });
-      if (response.data.like) {
+      const isLiked = response.data.isLiked;
+
+      if (isLiked) {
         setLikedVideos(prev => prev.map(v => v._id === item._id ? { ...v, likeCount: v.likeCount + 1, isLiked: true } : v));
       } else {
+        // Unliked — remove from liked list
         setLikedVideos(prev => prev.filter(v => v._id !== item._id));
       }
     } catch (err) { console.error(err); }
@@ -34,11 +37,13 @@ const Liked = () => {
   const saveVideo = async (item) => {
     try {
       const response = await api.post('/api/food/save', { foodId: item._id });
-      if (response.data.save) {
-        setLikedVideos(prev => prev.map(v => v._id === item._id ? { ...v, savesCount: v.savesCount + 1, isSaved: true } : v));
-      } else {
-        setLikedVideos(prev => prev.map(v => v._id === item._id ? { ...v, savesCount: v.savesCount - 1, isSaved: false } : v));
-      }
+      const isSaved = response.data.isSaved;
+
+      setLikedVideos(prev => prev.map(v => v._id === item._id ? {
+        ...v,
+        savesCount: isSaved ? v.savesCount + 1 : v.savesCount - 1,
+        isSaved
+      } : v));
     } catch (err) { console.error(err); }
   };
 

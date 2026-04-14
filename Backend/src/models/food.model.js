@@ -27,6 +27,10 @@ const foodSchema = new mongoose.Schema({
     sharesCount: {
         type: Number,
         default: 0
+    },
+    commentsCount: {
+        type: Number,
+        default: 0
     }
 })
 

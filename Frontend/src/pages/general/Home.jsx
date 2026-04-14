@@ -20,12 +20,13 @@ const Home = () => {
   async function likeVideo(item) {
     try {
       const response = await api.post(`/api/food/like`, { foodId: item._id });
+      const isLiked = response.data.isLiked;
 
-      if (response.data.like) {
-        setVideos(prev => prev.map(v => v._id === item._id ? { ...v, likeCount: v.likeCount + 1 } : v));
-      } else {
-        setVideos(prev => prev.map(v => v._id === item._id ? { ...v, likeCount: v.likeCount - 1 } : v));
-      }
+      setVideos(prev => prev.map(v => v._id === item._id ? {
+        ...v,
+        likeCount: isLiked ? v.likeCount + 1 : v.likeCount - 1,
+        isLiked
+      } : v));
     } catch (err) {
       console.error("Like action failed", err);
     }
@@ -35,12 +36,13 @@ const Home = () => {
   async function saveVideo(item) {
     try {
       const response = await api.post(`/api/food/save`, { foodId: item._id });
+      const isSaved = response.data.isSaved;
 
-      if (response.data.save) {
-        setVideos(prev => prev.map(v => v._id === item._id ? { ...v, savesCount: v.savesCount + 1 } : v));
-      } else {
-        setVideos(prev => prev.map(v => v._id === item._id ? { ...v, savesCount: v.savesCount - 1 } : v));
-      }
+      setVideos(prev => prev.map(v => v._id === item._id ? {
+        ...v,
+        savesCount: isSaved ? v.savesCount + 1 : v.savesCount - 1,
+        isSaved
+      } : v));
     } catch (err) {
       console.error("Save action failed", err);
     }

@@ -48,4 +48,14 @@ router.post('/share',
     foodController.shareFood
 )
 
+router.post('/comment',
+    authMiddleware.authUserMiddleware,
+    foodController.addComment
+)
+
+router.get('/:foodId/comments',
+    authMiddleware.authUserMiddleware,
+    foodController.getComments
+)
+
 module.exports = router

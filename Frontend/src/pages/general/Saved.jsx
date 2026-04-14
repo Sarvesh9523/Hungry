@@ -10,6 +10,7 @@ const Saved = () => {
     .then(response => {
       const savedFoods = response.data.savedFoods.map(item => ({
         _id: item.food._id,
+        name: item.food.name,
         video: item.food.video,
         description: item.food.description,
         likeCount: item.food.likeCount,
@@ -17,7 +18,8 @@ const Saved = () => {
         sharesCount: item.food.sharesCount,
         commentsCount: item.food.commentsCount,
         foodPartner: item.food.foodPartner,
-        isSaved: true
+        isLiked: item.food.isLiked ?? false,
+        isSaved: item.food.isSaved ?? true
       }));
       setVideos(savedFoods);
     })
@@ -29,11 +31,13 @@ const Saved = () => {
   const likeVideo = async (item) => {
     try {
       const response = await api.post(`/api/food/like`, { foodId: item._id });
-      if (response.data.like) {
-        setVideos(prev => prev.map(v => v._id === item._id ? { ...v, likeCount: v.likeCount + 1, isLiked: true } : v));
-      } else {
-        setVideos(prev => prev.map(v => v._id === item._id ? { ...v, likeCount: v.likeCount - 1, isLiked: false } : v));
-      }
+      const isLiked = response.data.isLiked;
+
+      setVideos(prev => prev.map(v => v._id === item._id ? {
+        ...v,
+        likeCount: isLiked ? v.likeCount + 1 : v.likeCount - 1,
+        isLiked
+      } : v));
     } catch (err) { console.error(err); }
   };
 

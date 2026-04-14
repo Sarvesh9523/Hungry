@@ -1,9 +1,14 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import backgroundPoster from '../assets/background_poster.png';
+import api from '../services/api';
 
 const ReelFeed = ({ items = [], onLike, onSave, onShare, emptyMessage = 'No videos yet.' }) => {
   const videoRefs = useRef(new Map());
+  const [activeCommentVideo, setActiveCommentVideo] = useState(null);
+  const [comments, setComments] = useState([]);
+  const [commentText, setCommentText] = useState('');
+  const [isLoadingComments, setIsLoadingComments] = useState(false);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -45,6 +50,38 @@ const ReelFeed = ({ items = [], onLike, onSave, onShare, emptyMessage = 'No vide
         alert('Link copied to clipboard!');
       }
     } catch (err) {}
+  };
+
+  const openComments = async (item) => {
+    setActiveCommentVideo(item);
+    setIsLoadingComments(true);
+    setComments([]);
+    try {
+      const response = await api.get(`/api/food/${item._id}/comments`);
+      setComments(response.data.comments || []);
+    } catch (error) {
+      console.error("Failed to load comments", error);
+    } finally {
+      setIsLoadingComments(false);
+    }
+  };
+
+  const submitComment = async () => {
+    if (!commentText.trim() || !activeCommentVideo) return;
+    try {
+      const response = await api.post('/api/food/comment', {
+        foodId: activeCommentVideo._id,
+        text: commentText
+      });
+      if (response.data.success) {
+        setComments([response.data.comment, ...comments]);
+        setCommentText('');
+        // Optimistically update the comments count locally for the feed
+        activeCommentVideo.commentsCount = (activeCommentVideo.commentsCount || 0) + 1;
+      }
+    } catch (error) {
+      console.error("Failed to submit comment", error);
+    }
   };
 
   return (
@@ -111,7 +148,10 @@ const ReelFeed = ({ items = [], onLike, onSave, onShare, emptyMessage = 'No vide
                 <span className="text-white font-bold text-xs mt-1 drop-shadow-md">{item.likeCount ?? 0}</span>
               </button>
 
-              <button className="flex flex-col items-center justify-center group/btn active:scale-95 transition-transform">
+              <button 
+                onClick={() => openComments(item)}
+                className="flex flex-col items-center justify-center group/btn active:scale-95 transition-transform"
+              >
                 <svg
                   className="w-8 h-8 text-white fill-none stroke-white drop-shadow-md group-hover/btn:scale-110 transition-transform"
                   viewBox="0 0 24 24" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
@@ -172,7 +212,127 @@ const ReelFeed = ({ items = [], onLike, onSave, onShare, emptyMessage = 'No vide
             </div>
           </div>
         ))}
+
+
+        {/* End of reels indicator */}
+        {items.length > 0 && (
+          <div className="
+            snap-start snap-always relative shrink-0
+            h-[100dvh] w-full
+            flex flex-col items-center justify-center overflow-hidden
+            rounded-none md:rounded-2xl bg-black/60 backdrop-blur-lg border border-white/10
+          ">
+            <div className="flex flex-col items-center text-center p-8 animate-fade-in">
+              <span className="text-6xl mb-6 drop-shadow-lg">🍿</span>
+              <h2 className="text-2xl font-bold text-white mb-3 tracking-wide">You're all caught up!</h2>
+              <p className="text-white/60 text-sm max-w-[250px] leading-relaxed">
+                Check back later for more delicious recipes and food adventures.
+              </p>
+              <button 
+                onClick={(e) => {
+                  const container = e.target.closest('.overflow-y-auto');
+                  if (container) container.scrollTo({ top: 0, behavior: 'smooth' });
+                }}
+                className="mt-8 px-6 py-2.5 rounded-full bg-white/10 text-white font-medium hover:bg-white/20 transition-colors border border-white/10 flex items-center gap-2"
+              >
+                <span>↑</span> Back to top
+              </button>
+            </div>
+          </div>
+        )}
       </div>
+      {/* Comments Modal / Bottom Sheet */}
+      {activeCommentVideo && (
+        <div className="fixed inset-0 z-[60] flex items-end justify-center pointer-events-none">
+          {/* Backdrop */}
+          <div 
+            className="absolute inset-0 bg-black/50 backdrop-blur-sm pointer-events-auto transition-opacity"
+            onClick={() => setActiveCommentVideo(null)}
+          />
+          
+          {/* Bottom Sheet Context */}
+          <div className="relative w-full md:w-[400px] bg-black/90 md:rounded-t-3xl border-t border-x border-white/10 h-[65vh] flex flex-col pointer-events-auto transform transition-transform animate-slide-up pb-safe shadow-2xl">
+            <div className="flex items-center justify-between p-4 border-b border-white/10">
+              <h3 className="text-white font-bold text-lg">Comments</h3>
+              <button 
+                onClick={() => setActiveCommentVideo(null)}
+                className="w-8 h-8 flex items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20 transition-colors"
+              >
+                ✕
+              </button>
+            </div>
+            
+            <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-4">
+              {isLoadingComments ? (
+                <div className="flex justify-center items-center h-full">
+                  <div className="w-8 h-8 border-4 border-pink-500 border-t-transparent rounded-full animate-spin"></div>
+                </div>
+              ) : comments.length === 0 ? (
+                <div className="text-center text-white/50 my-auto pb-10">
+                  <p>No comments yet.</p>
+                  <p className="text-sm">Be the first to comment!</p>
+                </div>
+              ) : (
+                comments.map((comment, index) => (
+                  <div key={comment._id || index} className="flex gap-3 animate-fade-in">
+                    <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-rose-500 to-fuchsia-500 flex items-center justify-center text-white font-bold shrink-0 overflow-hidden text-xs">
+                      {comment.user?.profilePic ? (
+                        <img src={comment.user.profilePic} alt="" className="w-full h-full object-cover" />
+                      ) : (
+                        comment.user?.name ? comment.user.name.charAt(0).toUpperCase() : 'U'
+                      )}
+                    </div>
+                    <div className="flex flex-col flex-1">
+                      <span className="text-white/60 text-xs font-semibold">{comment.user?.name || 'User'}</span>
+                      <p className="text-white text-sm mt-0.5 leading-snug break-words">
+                        {comment.text}
+                      </p>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+
+            <div className="p-3 border-t border-white/10 bg-black/50">
+              <div className="flex items-center gap-2 bg-white/10 rounded-full px-3 py-2 border border-white/10">
+                <input 
+                  type="text" 
+                  value={commentText}
+                  onChange={(e) => setCommentText(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && submitComment()}
+                  placeholder="Add a comment..."
+                  className="flex-1 bg-transparent border-none outline-none text-white text-sm placeholder-white/40"
+                />
+                <button 
+                  onClick={submitComment}
+                  disabled={!commentText.trim()}
+                  className={`text-sm font-bold transition-colors ${commentText.trim() ? 'text-pink-500 hover:text-pink-400' : 'text-white/30 cursor-not-allowed'}`}
+                >
+                  Post
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Put a little animation css hack here to avoid making another file */}
+      <style>{`
+        @keyframes slide-up {
+          from { transform: translateY(100%); }
+          to { transform: translateY(0); }
+        }
+        .animate-slide-up {
+          animation: slide-up 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        @keyframes fade-in {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        .animate-fade-in {
+          animation: fade-in 0.3s ease-out;
+        }
+      `}</style>
     </div>
   );
 };
